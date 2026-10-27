@@ -28,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   onLogout,
 }) => {
+  const isInbox = currentPath === '/inbox';
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { id: 'inbox', label: 'Inbox', icon: Mail, path: '/inbox', badge: 3 },
@@ -37,11 +38,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const sidebarContent = (
-    <aside className="w-full h-full flex flex-col justify-between p-6 overflow-y-auto no-scrollbar">
+    <aside className={`w-full h-full flex flex-col justify-between overflow-y-auto no-scrollbar ${isInbox ? 'p-3 xl:p-6' : 'p-6'}`}>
       {/* Top: Logo & Nav */}
       <div>
         {/* Brand Logo */}
-        <div className="flex items-center justify-between mb-8 px-2">
+        <div className={`flex items-center justify-between mb-8 px-2 ${isInbox ? 'md:max-xl:justify-center' : ''}`}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center shadow-purple-glow text-white">
               {/* Star sparkle icon */}
@@ -52,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" />
               </svg>
             </div>
-            <span className="text-xl font-bold tracking-tight text-slateText-primary font-sans">
+            <span className={`text-xl font-bold tracking-tight text-slateText-primary font-sans ${isInbox ? 'md:max-xl:hidden' : ''}`}>
               Coursue
             </span>
           </div>
@@ -71,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* OVERVIEW Section */}
         <div className="mb-7">
-          <p className="text-[11px] font-bold tracking-wider text-slateText-muted uppercase px-3 mb-2.5">
+          <p className={`text-[11px] font-bold tracking-wider text-slateText-muted uppercase px-3 mb-2.5 ${isInbox ? 'md:max-xl:hidden' : ''}`}>
             Overview
           </p>
           <nav className="space-y-1" aria-label="Overview Navigation">
@@ -85,23 +86,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onNavigate(item.path);
                     if (onCloseMobile) onCloseMobile();
                   }}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 group text-left ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 group text-left ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''} ${
                     isActive
                       ? 'bg-brand-50 text-brand-500 font-semibold shadow-xs'
                       : 'text-slateText-secondary hover:bg-slate-50 hover:text-slateText-primary'
                   }`}
                   aria-current={isActive ? 'page' : undefined}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className={`flex items-center gap-3 ${isInbox ? 'md:max-xl:justify-center' : ''}`}>
                     <Icon
                       className={`w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110 ${
                         isActive ? 'text-brand-500 stroke-[2.2]' : 'text-slateText-muted group-hover:text-slateText-secondary stroke-[1.8]'
                       }`}
                     />
-                    <span>{item.label}</span>
+                    <span className={isInbox ? 'md:max-xl:hidden' : ''}>{item.label}</span>
                   </div>
                   {item.badge && (
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-500">
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-500 ${isInbox ? 'md:max-xl:hidden' : ''}`}>
                       {item.badge}
                     </span>
                   )}
@@ -112,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* FRIENDS Section */}
-        <div className="mb-6">
+        <div className={`mb-6 ${isInbox ? 'md:max-xl:hidden' : ''}`}>
           <p className="text-[11px] font-bold tracking-wider text-slateText-muted uppercase px-3 mb-3">
             Friends
           </p>
@@ -148,7 +149,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom: SETTINGS Section */}
       <div className="pt-4 border-t border-slate-100">
-        <p className="text-[11px] font-bold tracking-wider text-slateText-muted uppercase px-3 mb-2">
+        <p className={`text-[11px] font-bold tracking-wider text-slateText-muted uppercase px-3 mb-2 ${isInbox ? 'md:max-xl:hidden' : ''}`}>
           Settings
         </p>
         <div className="space-y-1">
@@ -157,10 +158,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onNavigate('/settings');
               if (onCloseMobile) onCloseMobile();
             }}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slateText-secondary hover:bg-slate-50 hover:text-slateText-primary transition-colors text-left"
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slateText-secondary hover:bg-slate-50 hover:text-slateText-primary transition-colors text-left ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''}`}
           >
             <Settings className="w-[18px] h-[18px] text-slateText-muted stroke-[1.8]" />
-            <span>Setting</span>
+            <span className={isInbox ? 'md:max-xl:hidden' : ''}>Setting</span>
           </button>
           <button
             onClick={() => {
@@ -171,10 +172,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 alert('Logout clicked');
               }
             }}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#F75555] hover:bg-rose-50 transition-colors text-left"
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#F75555] hover:bg-rose-50 transition-colors text-left ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''}`}
           >
             <LogOut className="w-[18px] h-[18px] text-[#F75555] stroke-[1.8]" />
-            <span>Logout</span>
+            <span className={isInbox ? 'md:max-xl:hidden' : ''}>Logout</span>
           </button>
         </div>
       </div>
@@ -184,7 +185,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop / Tablet Sidebar */}
-      <div className="hidden md:block w-60 lg:w-[240px] shrink-0 border-r border-[#F0F1F6] bg-white">
+      <div className={`hidden md:block shrink-0 border-r border-[#F0F1F6] bg-white ${isInbox ? 'md:w-20 xl:w-[240px]' : 'w-60 lg:w-[240px]'}`}>
         {sidebarContent}
       </div>
 

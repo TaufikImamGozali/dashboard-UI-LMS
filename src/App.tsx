@@ -16,6 +16,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { CourseDetailPage } from './pages/CourseDetailPage';
 import { LessonPage } from './pages/LessonPage';
 import { TaskPage } from './pages/TaskPage';
+import { InboxPage } from './pages/InboxPage';
 import {
   mockFriends,
   mockProgressSummaries,
@@ -165,13 +166,7 @@ function DashboardLayout() {
               {/* Secondary Dashboard Routes */}
               <Route
                 path="/inbox"
-                element={
-                  <PlaceholderView
-                    title="Inbox & Communications"
-                    description="Connect with your mentors, course classmates, and study groups in real-time."
-                    onBackToDashboard={() => navigate('/')}
-                  />
-                }
+                element={<InboxPage />}
               />
               <Route
                 path="/lesson"
