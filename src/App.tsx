@@ -15,6 +15,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { CourseDetailPage } from './pages/CourseDetailPage';
 import { LessonPage } from './pages/LessonPage';
+import { TaskPage } from './pages/TaskPage';
 import {
   mockFriends,
   mockProgressSummaries,
@@ -178,13 +179,7 @@ function DashboardLayout() {
               />
               <Route
                 path="/task"
-                element={
-                  <PlaceholderView
-                    title="Tasks & Assignments"
-                    description="Keep track of your weekly milestones, project submissions, and code reviews."
-                    onBackToDashboard={() => navigate('/')}
-                  />
-                }
+                element={<TaskPage />}
               />
               <Route
                 path="/group"
