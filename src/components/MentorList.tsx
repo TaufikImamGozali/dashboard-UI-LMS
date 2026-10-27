@@ -16,7 +16,7 @@ export const MentorList: React.FC<MentorListProps> = ({
   onSeeAllMentors,
 }) => {
   return (
-    <div className="bg-white rounded-[26px] p-6 border border-[#EEF0F6] shadow-xs">
+    <div className="bg-surface rounded-card p-6 border border-outline-subtle shadow-xs">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-bold text-slateText-primary tracking-tight">
@@ -24,7 +24,7 @@ export const MentorList: React.FC<MentorListProps> = ({
         </h2>
         <button
           onClick={onAddMentor || (() => alert('Find new mentors'))}
-          className="w-8 h-8 rounded-full border border-[#E5E7EB] hover:border-brand-500 hover:bg-brand-50 flex items-center justify-center text-slateText-secondary hover:text-brand-500 transition-colors shadow-2xs"
+          className="w-8 h-8 rounded-full border border-outline hover:border-brand-500 hover:bg-brand-50 flex items-center justify-center text-slateText-secondary hover:text-brand-500 transition-colors shadow-2xs"
           aria-label="Add mentor"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -41,20 +41,20 @@ export const MentorList: React.FC<MentorListProps> = ({
             {/* Avatar & Details */}
             <div className="flex items-center gap-3 min-w-0">
               <div className="relative shrink-0">
-                <img
+                <img height="160" width="160" loading="lazy"
                   src={mentor.avatar}
                   alt={mentor.name}
                   className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 group-hover:scale-105 transition-transform"
                 />
                 {mentor.isOnline && (
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-black rounded-full ring-2 ring-white" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-black rounded-full ring-2 ring-surface" />
                 )}
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold text-slateText-primary truncate group-hover:text-brand-500 transition-colors">
                   {mentor.name}
                 </p>
-                <p className="text-[11px] text-slateText-muted">
+                <p className="text-meta text-slateText-muted">
                   {mentor.role}
                 </p>
               </div>
@@ -66,7 +66,7 @@ export const MentorList: React.FC<MentorListProps> = ({
               className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 active:scale-95 ${
                 mentor.isFollowing
                   ? 'bg-brand-500 border-brand-500 text-white shadow-xs'
-                  : 'bg-white hover:bg-[#F5F6FA] border-[#E2E4EC] text-slateText-secondary hover:text-slateText-primary'
+                  : 'bg-surface hover:bg-surface-muted border-outline text-slateText-secondary hover:text-slateText-primary'
               }`}
               aria-label={mentor.isFollowing ? `Unfollow ${mentor.name}` : `Follow ${mentor.name}`}
             >

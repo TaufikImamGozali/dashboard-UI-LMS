@@ -31,7 +31,7 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ tasks 
   const maxCount = Math.max(...data.map((d) => d.count), 3);
 
   return (
-    <div className="bg-white rounded-[22px] border border-[#EEF0F6] shadow-xs p-5">
+    <div className="bg-surface rounded-card border border-outline-subtle shadow-xs p-5">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-4 h-4 text-brand-500" />
         <h3 className="text-sm font-extrabold text-slateText-primary">Weekly Progress</h3>
@@ -44,20 +44,22 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ tasks 
               dataKey="label"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fontWeight: 700, fill: '#9E9DAE' }}
+              tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--chart-muted)' }}
             />
             <YAxis
               domain={[0, maxCount]}
               allowDecimals={false}
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fontWeight: 700, fill: '#9E9DAE' }}
+              tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--chart-muted)' }}
             />
             <Tooltip
               cursor={{ fill: 'rgba(108,92,231,0.06)', radius: 8 }}
               contentStyle={{
                 borderRadius: '12px',
-                border: '1px solid #EEF0F6',
+                border: '1px solid rgb(var(--color-border-subtle))',
+                backgroundColor: 'rgb(var(--color-surface-elevated))',
+                color: 'rgb(var(--color-text-primary))',
                 fontSize: '12px',
                 fontWeight: 700,
                 boxShadow: '0 4px 16px -2px rgba(24,23,42,0.08)',
@@ -72,7 +74,7 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ tasks 
               {data.map((entry, idx) => (
                 <Cell
                   key={idx}
-                  fill={entry.isToday ? '#6C5CE7' : entry.count > 0 ? '#C4B5FD' : '#EDE9FE'}
+                  fill={entry.isToday ? 'var(--chart-primary)' : entry.count > 0 ? 'var(--chart-secondary)' : 'var(--chart-track)'}
                 />
               ))}
             </Bar>

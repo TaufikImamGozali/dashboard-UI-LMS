@@ -1,127 +1,136 @@
-# Coursue - E-Learning & LMS Dashboard
+# Coursue
 
-A pixel-accurate, modern, and responsive web platform for **"Coursue"**, built with **React 18**, **Vite**, **TypeScript**, **Tailwind CSS**, **Recharts**, and **Lucide React**.
+Coursue is a polished, responsive learning-management dashboard built as a front-end demonstration. It includes course progress, lesson discovery, task management, messaging, and study-group collaboration with mock data persisted in the browser.
 
-Includes:
-1. **LMS Dashboard**: 3-column layout, progress cards, continue watching carousel, your lesson table, statistic charts, and mentor directory.
-2. **Authentication Suite**: 2-column Login page with validation and loading state, Register page, and Forgot Password recovery.
-3. **Course Detail Page (`/course/:id`)**: Rich video player, curriculum accordion, tabs (Overview, Lessons, Reviews), progress ring, course information, mentor card with follow toggle, favorite/share actions, and related courses.
+## Screenshot
 
----
+> Screenshot placeholder — add the latest desktop and mobile captures under `docs/screenshots/` when release artwork is available.
 
-## 🌟 Key Features
+## Highlights
 
-### 1. Course Detail View (`/course/:id`)
-- **Breadcrumb & Header**: Clean hierarchy (`Dashboard > Lesson > Course Title`), category pill badge, star rating, student count, duration, and last updated timestamp.
-- **Interactive Video Player**:
-  - High-resolution video container with smooth controls (play/pause, timeline scrubber, replay, volume mute/unmute, and fullscreen).
-  - Displays current lesson title and "Mark as Complete" button that immediately recalculates the course completion percentage.
-- **Tabbed Course Content**:
-  - **Overview Tab**: Detailed course description, "What you'll learn" checklist with green icons, and prerequisites/requirements list.
-  - **Lessons Tab**: Accordion curriculum grouped into structured sections. Shows lesson status (Completed checkmark, Active playing indicator, or Locked status with tooltip feedback) and duration. Clicking an unlocked lesson switches the active player.
-  - **Reviews Tab**: Rating distribution breakdown (5, 4, 3 stars) and authentic review cards with avatars, timestamps, and star ratings.
-- **Right Sidebar Panels**:
-  - **Your Progress**: Circular SVG progress ring with percentage, completed lessons count, and a primary pill "Continue Learning" button that automatically jumps to the next uncompleted lesson.
-  - **Course Information**: Skill level, language, lessons count, certificate availability, and access type.
-  - **Instructor Profile**: Mentor avatar, bio, rating, student count, and interactive `Follow` / `Following` toggle.
-  - **Actions**: "Favorite" toggle button (filled heart) and "Share" button (copies link to clipboard with confirmation).
-- **Related Courses**: 3 curated course recommendation cards below the main content.
-- **Course Not Found (404)**: Graceful error state when navigating to an invalid ID, with a button to return to the dashboard.
-- **Responsive Adaptations**:
-  - ≥1280px: Two-column layout (8 cols main content, 4 cols sidebar).
-  - 768-1279px: Sidebar docks and right panel stacks neatly below the video player.
-  - <768px: Single column with horizontally scrollable tabs and a sticky bottom "Continue Learning" bar.
+- Responsive dashboard shell with desktop, tablet, and mobile navigation
+- Light and dark themes with system preference detection
+- Course catalog and detailed learning experience
+- Task board with drag and drop, calendar, filters, and local persistence
+- Inbox with conversations, attachments, typing simulation, and auto replies
+- Study groups with discussion, member, resource, and session views
+- Accessible keyboard navigation, focus-managed dialogs, reduced-motion support, and skip link
+- Lazy-loaded routes, error boundary, skeleton loading, shared empty states, and 404 handling
 
----
+## Tech stack
 
-## 🛠️ Tech Stack
+- React 18
+- TypeScript with strict mode
+- Vite 8
+- Tailwind CSS 3
+- React Router 7
+- Lucide React
+- Recharts
+- dnd-kit
+- oxlint
 
-- **Framework**: React 18 (with React DOM 18)
-- **Routing**: React Router DOM (`BrowserRouter`, `Routes`, `Route`, `useParams`, `useNavigate`)
-- **Bundler & Tooling**: Vite 8 + TypeScript (with `verbatimModuleSyntax`)
-- **Styling**: Tailwind CSS with custom theme tokens
-- **Icons**: Lucide React
-- **Typography**: Google Fonts "Plus Jakarta Sans"
+No back-end service is required. Authentication and feature data are simulated through `localStorage`.
 
----
+## Getting started
 
-## 🚀 Installation & Running Locally
+Requirements:
 
-1. Clone or navigate to the project directory:
-   ```bash
-   cd d:/NGODING/UI
-   ```
+- Node.js 20 or newer
+- npm
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+Install and run:
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open your browser:
-   ```
-   http://localhost:5173/
-   ```
-
-5. Production build validation:
-   ```bash
-   npm run build
-   ```
-
----
-
-## 📁 Project Structure
-
+```bash
+npm install
+npm run dev
 ```
-├── index.html                           # Plus Jakarta Sans font & metadata
-├── tailwind.config.js                   # Custom brand colors, category tokens, shadows
-├── tsconfig.json                        # TypeScript configuration
-├── package.json                         # Dependencies & scripts
-└── src/
-    ├── types/
-    │   └── index.ts                     # Types (CourseDetail, Section, Lesson, Review, etc.)
-    ├── data/
-    │   ├── mockData.ts                  # Dashboard courses, mentors, lessons, stats
-    │   └── courses.ts                   # 6 detailed courses with curriculum & reviews
-    ├── components/
-    │   ├── ui/
-    │   │   ├── Button.tsx               # Reusable button with loading & variants
-    │   │   ├── TextField.tsx            # Accessible input with icons & error states
-    │   │   └── PasswordField.tsx        # Password input with show/hide toggle
-    │   ├── auth/
-    │   │   ├── AuthLayout.tsx           # Two-column auth layout with gradient panel
-    │   │   └── ProtectedRoute.tsx       # Route guard based on localStorage
-    │   ├── course/
-    │   │   ├── CourseHeader.tsx         # Breadcrumb, title, rating & metadata
-    │   │   ├── VideoPlayer.tsx          # Video player with controls & complete toggle
-    │   │   ├── CourseTabs.tsx           # Overview, Lessons & Reviews tab panels
-    │   │   ├── CurriculumAccordion.tsx  # Section accordion with lesson status
-    │   │   ├── ReviewCard.tsx           # Testimonial & rating card
-    │   │   ├── ProgressRing.tsx         # Circular SVG progress ring
-    │   │   ├── CourseProgressPanel.tsx  # Progress card, continue CTA, favorite & share
-    │   │   ├── CourseInfoCard.tsx       # Course specifications & metadata
-    │   │   └── CourseMentorCard.tsx     # Instructor profile & follow button
-    │   ├── Sidebar.tsx                  # Left navigation, friends & logout
-    │   ├── Topbar.tsx                   # Search bar, actions & user avatar
-    │   ├── HeroBanner.tsx               # Gradient hero card with sparkles & CTA
-    │   ├── CourseProgressCard.tsx       # 3 summary progress cards (links to detail)
-    │   ├── CourseCard.tsx               # Continue watching course card (links to detail)
-    │   ├── ContinueWatchingSection.tsx   # Carousel wrapper & controls
-    │   ├── LessonTable.tsx              # Lesson table (responsive table & cards)
-    │   ├── StatisticCard.tsx            # SVG progress ring & Recharts bar chart
-    │   ├── MentorList.tsx               # Mentor cards with follow toggles
-    │   ├── CategoryBadge.tsx            # Reusable pill badge component
-    │   └── PlaceholderView.tsx          # Secondary page view for router
-    ├── pages/
-    │   ├── CourseDetailPage.tsx         # Course detail view with video, tabs & curriculum
-    │   ├── LoginPage.tsx                # Login page with validation & loading
-    │   ├── RegisterPage.tsx             # Register account page
-    │   └── ForgotPasswordPage.tsx       # Password recovery page
-    ├── App.tsx                          # App router, protected routes & state
-    ├── main.tsx                         # Entry point
-    └── index.css                        # Tailwind directives & smooth scrollbar
+
+The development server prints its local URL, normally `http://localhost:5173`.
+
+Production checks:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+npm run preview
 ```
+
+## Mock login
+
+The login is validation-only. Use any valid email address and any password containing at least eight characters.
+
+Example:
+
+```text
+Email: student@coursue.test
+Password: learn1234
+```
+
+The Google login button also enters the mock authenticated session.
+
+## Routes
+
+| Route | Description | Access |
+| --- | --- | --- |
+| `/login` | Mock sign in | Public |
+| `/register` | Mock account registration | Public |
+| `/forgot-password` | Password recovery form | Public |
+| `/` | Learning dashboard | Protected |
+| `/lesson` | Course and lesson catalog | Protected |
+| `/course/:id` | Course detail and curriculum | Protected |
+| `/task` | Task board and planner | Protected |
+| `/inbox` | Mentor and friend messages | Protected |
+| `/group` | Joined and discoverable study groups | Protected |
+| `/group/:id` | Group discussion, members, and resources | Protected |
+| `/settings` | Settings placeholder | Protected |
+| `*` | Friendly not-found page | Protected |
+
+## Project structure
+
+```text
+src/
+├── assets/                 Static project artwork
+├── components/
+│   ├── auth/               Authentication layout and route guard
+│   ├── course/             Course-detail components
+│   ├── group/              Study-group components
+│   ├── inbox/              Messaging components
+│   ├── lessons/            Lesson-list components
+│   ├── task/               Task-board components
+│   └── ui/                 Shared UI primitives and barrel exports
+├── data/                   Typed mock data
+├── hooks/                  Feature, theme, toast, and focus hooks
+├── pages/                  Lazy-loaded route pages
+├── types/                  Shared TypeScript models
+├── App.tsx                 Router and application shell
+├── index.css               Semantic theme variables and global styles
+└── main.tsx                React entry point
+```
+
+## Design system and themes
+
+Semantic colors such as `surface`, `content`, and `outline` are mapped to CSS variables in `src/index.css` and exposed through `tailwind.config.js`. The theme toggle stores its choice under `coursue_theme`; without a stored choice, Coursue follows `prefers-color-scheme`.
+
+The early theme script in `index.html` applies the correct root class before React loads, preventing a light-theme flash.
+
+## Browser storage
+
+Coursue uses the following keys:
+
+- `coursue_auth`
+- `coursue_remember`
+- `coursue_theme`
+- `coursue_tasks_v1`
+- `coursue_conversations_v1`
+- `coursue_groups_v1`
+
+Clear these keys in browser developer tools to reset the demo state.
+
+## Environment variables
+
+The current project does not use environment variables, so an `.env.example` file is intentionally unnecessary. If an API is added later, expose client-safe values with Vite's `VITE_` prefix and document them here.
+
+## Accessibility
+
+The interface includes visible keyboard focus, a skip link, semantic landmarks, labelled icon buttons, accessible tabs and live regions, focus trapping and restoration for overlays, 44px mobile touch targets, and a global reduced-motion mode.

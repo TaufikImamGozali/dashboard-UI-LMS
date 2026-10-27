@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import type { Task, NewTaskForm, Priority, TaskStatus } from '../../types/task';
 import { mockCourses } from '../../data/mockData';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const COURSE_OPTIONS = mockCourses.map((c) => ({
   id: c.id,
@@ -49,21 +50,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   const [form, setForm] = useState<NewTaskForm>(() => getInitialForm(editTask));
   const [errors, setErrors] = useState<Partial<Record<keyof NewTaskForm, string>>>({});
   const firstInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const focusTimer = window.setTimeout(() => firstInputRef.current?.focus(), 80);
-    return () => window.clearTimeout(focusTimer);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [isOpen, onClose]);
+  const dialogRef = useFocusTrap<HTMLDivElement>(isOpen, onClose, firstInputRef);
 
   const validate = (): boolean => {
     const errs: typeof errors = {};
@@ -84,14 +71,14 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const labelClass = 'block text-xs font-bold text-slateText-secondary mb-1.5';
   const inputClass =
-    'w-full px-4 py-2.5 rounded-2xl border text-sm font-medium text-slateText-primary placeholder:text-slateText-muted bg-[#F8F9FC] focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 focus:bg-white transition-all';
+    'w-full px-4 py-2.5 rounded-2xl border text-sm font-medium text-slateText-primary placeholder:text-slateText-muted bg-surface-muted focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 focus:bg-surface transition-all';
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="task-form-title"
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+      className="fixed inset-0 z-modal flex items-center justify-center p-4"
     >
       {/* Backdrop */}
       <div
@@ -101,7 +88,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
       />
 
       {/* Panel */}
-      <div className="relative bg-white rounded-[28px] shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
+      <div ref={dialogRef} className="relative bg-surface rounded-shell shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-7 pb-5 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2.5">

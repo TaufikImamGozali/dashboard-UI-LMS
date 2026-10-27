@@ -42,7 +42,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ tasks, selectedDate,
   const next = () => setCurrent(new Date(year, month + 1, 1));
 
   return (
-    <div className="bg-white rounded-[22px] border border-[#EEF0F6] shadow-xs p-5">
+    <div className="bg-surface rounded-card border border-outline-subtle shadow-xs p-5">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-extrabold text-slateText-primary">
@@ -71,7 +71,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ tasks, selectedDate,
       {/* Day names */}
       <div className="grid grid-cols-7 mb-1.5">
         {DAYS.map((d) => (
-          <div key={d} className="text-center text-[10px] font-bold text-slateText-muted py-1">
+          <div key={d} className="text-center text-micro font-bold text-slateText-muted py-1">
             {d}
           </div>
         ))}
@@ -101,7 +101,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ tasks, selectedDate,
               onClick={() => onSelectDate(isSelected ? null : iso)}
               aria-label={`${day} ${MONTHS[month]} ${year}${hasDeadline ? ', has deadlines' : ''}`}
               aria-pressed={isSelected}
-              className={`relative flex flex-col items-center justify-center h-8 w-full rounded-xl text-[11px] font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+              className={`relative flex flex-col items-center justify-center h-8 w-full rounded-xl text-meta font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
                 isSelected
                   ? 'bg-brand-500 text-white shadow-purple-glow'
                   : isToday
@@ -113,7 +113,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ tasks, selectedDate,
               {hasDeadline && (
                 <div
                   className={`absolute bottom-0.5 w-1 h-1 rounded-full ${
-                    isSelected ? 'bg-white' : 'bg-brand-400'
+                    isSelected ? 'bg-surface' : 'bg-brand-400'
                   }`}
                 />
               )}

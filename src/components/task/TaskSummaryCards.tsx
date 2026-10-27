@@ -48,13 +48,13 @@ export const TaskSummaryCards: React.FC<TaskSummaryCardsProps> = ({ counts }) =>
     {cards.map(({ key, label, icon: Icon, iconBg, iconColor }) => (
       <div
         key={key}
-        className="bg-white rounded-[22px] p-4 border border-[#EEF0F6] shadow-xs flex items-center gap-4"
+        className="bg-surface rounded-card p-4 border border-outline-subtle shadow-xs flex items-center gap-4"
       >
         <div className={`w-11 h-11 rounded-xl ${iconBg} flex items-center justify-center shrink-0`}>
           <Icon className={`w-5 h-5 ${iconColor}`} />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold text-slateText-muted uppercase tracking-wide truncate">
+          <p className="text-meta font-semibold text-slateText-muted uppercase tracking-wide truncate">
             {label}
           </p>
           <p className="text-2xl font-extrabold text-slateText-primary leading-none mt-0.5">

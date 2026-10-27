@@ -30,7 +30,7 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
   return (
     <div className="space-y-4">
       {/* Main Progress Card */}
-      <div className="bg-white rounded-[26px] p-6 border border-[#EEF0F6] shadow-xs space-y-5">
+      <div className="bg-surface rounded-card p-6 border border-outline-subtle shadow-xs space-y-5">
         <h2 className="text-base font-bold text-slateText-primary tracking-tight">
           Your Progress
         </h2>
@@ -75,7 +75,7 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
           className={`flex items-center justify-center gap-2 py-3 px-4 rounded-full border text-xs font-bold transition-all active:scale-95 shadow-2xs ${
             isFavorite
               ? 'bg-rose-50 border-rose-200 text-rose-500'
-              : 'bg-white hover:bg-slate-50 border-slate-200 text-slateText-secondary hover:text-slateText-primary'
+              : 'bg-surface hover:bg-slate-50 border-slate-200 text-slateText-secondary hover:text-slateText-primary'
           }`}
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
@@ -89,7 +89,7 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
         <button
           type="button"
           onClick={handleShare}
-          className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slateText-secondary hover:text-slateText-primary text-xs font-bold transition-all active:scale-95 shadow-2xs"
+          className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-surface hover:bg-slate-50 border border-slate-200 text-slateText-secondary hover:text-slateText-primary text-xs font-bold transition-all active:scale-95 shadow-2xs"
           aria-label="Share course link"
         >
           {isCopied ? (

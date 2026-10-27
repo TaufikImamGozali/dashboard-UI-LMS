@@ -7,7 +7,7 @@ interface HeroBannerProps {
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({ onJoinClick }) => {
   return (
-    <div className="relative overflow-hidden rounded-[26px] bg-gradient-to-r from-[#6253EC] via-[#6F5FF5] to-[#8C7CF0] p-7 md:p-9 text-white shadow-card">
+    <div className="relative overflow-hidden rounded-card bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 p-7 md:p-9 text-white shadow-card">
       {/* Background Decorative Sparkles / Stars matching screenshot */}
       <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none select-none">
         {/* Large 4-point sparkle star */}
@@ -36,16 +36,16 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onJoinClick }) => {
       <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-xl space-y-4">
+      <div className="relative z-content max-w-xl space-y-4">
         {/* Category capsule */}
         <div>
-          <span className="inline-block px-3.5 py-1 text-[11px] font-bold tracking-widest uppercase bg-white/20 backdrop-blur-md text-white rounded-full">
+          <span className="inline-block px-3.5 py-1 text-meta font-bold tracking-widest uppercase bg-white/20 backdrop-blur-md text-white rounded-full">
             Online Course
           </span>
         </div>
 
         {/* Heading */}
-        <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold tracking-tight text-white leading-[1.25] drop-shadow-xs">
+        <h1 className="text-2xl sm:text-3xl lg:text-3xl font-extrabold tracking-tight text-white leading-[1.25] drop-shadow-xs">
           Sharpen Your Skills with <br className="hidden sm:inline" />
           Professional Online Courses
         </h1>
@@ -54,11 +54,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onJoinClick }) => {
         <div className="pt-2">
           <button
             onClick={onJoinClick || (() => alert('Joining course!'))}
-            className="group inline-flex items-center gap-3.5 pl-6 pr-2.5 py-2.5 bg-[#141126] hover:bg-[#1E1B38] text-white font-semibold text-sm rounded-full transition-all duration-300 hover:shadow-lg active:scale-95"
+            className="group inline-flex items-center gap-3.5 pl-6 pr-2.5 py-2.5 bg-brand-dark hover:bg-content-primary text-white font-semibold text-sm rounded-full transition-all duration-300 hover:shadow-lg active:scale-95"
             aria-label="Join Course Now"
           >
             <span>Join Now</span>
-            <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-[#141126] transition-transform duration-300 group-hover:translate-x-0.5">
+            <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-brand-dark transition-transform duration-300 group-hover:translate-x-0.5">
               <ChevronRight className="w-4 h-4 stroke-[3]" />
             </div>
           </button>

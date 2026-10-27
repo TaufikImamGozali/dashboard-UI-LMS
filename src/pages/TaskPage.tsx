@@ -15,8 +15,8 @@ import { TaskDrawer } from '../components/task/TaskDrawer';
 import { MiniCalendar } from '../components/task/MiniCalendar';
 import { UpcomingDeadlines } from '../components/task/UpcomingDeadlines';
 import { WeeklyProgressChart } from '../components/task/WeeklyProgressChart';
-import { ConfirmDialog } from '../components/task/ConfirmDialog';
-import { ToastContainer } from '../components/task/Toast';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ToastContainer } from '../components/ui/Toast';
 
 const MOBILE_TABS: { id: TaskStatus; label: string }[] = [
   { id: 'todo', label: 'To Do' },
@@ -203,6 +203,7 @@ export const TaskPage: React.FC = () => {
               onOpenTask={handleOpenTask}
               onEditTask={handleOpenEdit}
               onDeleteTask={handleDeleteRequest}
+              onCreateTask={() => { setEditingTask(null); setIsFormOpen(true); }}
             />
           )}
         </div>
@@ -250,7 +251,7 @@ export const TaskPage: React.FC = () => {
         type="button"
         onClick={() => { setEditingTask(null); setIsFormOpen(true); }}
         aria-label="Create new task"
-        className="sm:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-purple-glow flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 z-50"
+        className="sm:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-purple-glow flex items-center justify-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 z-popover"
       >
         <Plus className="w-6 h-6" />
       </button>

@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { X, CalendarDays, Flag, Paperclip, CheckSquare, CheckCircle2, FileText, FileImage, Archive } from 'lucide-react';
 import type { Task, Priority, TaskAttachment } from '../../types/task';
-import { CategoryBadge } from '../CategoryBadge';
+import { TagBadge } from '../ui/TagBadge';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const priorityConfig: Record<Priority, { label: string; classes: string }> = {
   Low: { label: 'Low', classes: 'bg-emerald-50 text-emerald-600' },
@@ -37,16 +38,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
   onMarkDone,
 }) => {
   const closeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setTimeout(() => closeRef.current?.focus(), 80);
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [isOpen, onClose]);
+  const drawerRef = useFocusTrap<HTMLDivElement>(isOpen, onClose, closeRef);
 
   if (!task) return null;
 
@@ -61,7 +53,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
     <>
       {/* Backdrop (mobile) */}
       <div
-        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[900] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-overlay transition-opacity duration-300 lg:hidden ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -70,17 +62,18 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
 
       {/* Drawer */}
       <div
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="task-drawer-title"
-        className={`fixed right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl z-[950] flex flex-col transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 h-full w-full sm:w-chat-drawer bg-surface shadow-2xl z-drawer flex flex-col transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
         <div className="flex items-start gap-3 px-6 pt-6 pb-5 border-b border-slate-100 shrink-0">
           <div className="flex-1 min-w-0">
-            <CategoryBadge category={task.courseCategory} label={task.courseLabel} />
+            <TagBadge category={task.courseCategory} label={task.courseLabel} />
             <h2
               id="task-drawer-title"
               className="mt-2 text-base font-extrabold text-slateText-primary leading-snug"
@@ -125,10 +118,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
           {/* Mentor */}
           <div className="flex items-center gap-3 bg-slate-50 rounded-2xl px-4 py-3">
             {task.mentorAvatar && (
-              <img
+              <img height="160" width="160" loading="lazy"
                 src={task.mentorAvatar}
                 alt={task.mentorName}
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm"
+                className="w-9 h-9 rounded-full object-cover ring-2 ring-surface shadow-sm"
               />
             )}
             <div>
@@ -187,9 +180,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({
                 {task.attachments.map((att) => (
                   <li
                     key={att.id}
-                    className="flex items-center gap-3 bg-[#F8F9FC] rounded-2xl px-4 py-3 border border-slate-100"
+                    className="flex items-center gap-3 bg-surface-muted rounded-2xl px-4 py-3 border border-slate-100"
                   >
-                    <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center shadow-2xs shrink-0">
+                    <div className="w-8 h-8 bg-surface rounded-xl flex items-center justify-center shadow-2xs shrink-0">
                       {attachmentIcon(att.type)}
                     </div>
                     <div className="min-w-0 flex-1">

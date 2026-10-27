@@ -26,14 +26,14 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
     circumference - (currentUser.completionPercentage / 100) * circumference;
 
   return (
-    <div className="bg-white rounded-[26px] p-6 border border-[#EEF0F6] shadow-xs">
+    <div className="bg-surface rounded-card p-6 border border-outline-subtle shadow-xs">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-bold text-slateText-primary tracking-tight">
           Statistic
         </h2>
         <button
-          className="w-8 h-8 rounded-full flex items-center justify-center text-slateText-muted hover:text-slateText-primary hover:bg-[#F5F6FA] transition-colors"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-slateText-muted hover:text-slateText-primary hover:bg-surface-muted transition-colors"
           aria-label="Statistic options"
         >
           <MoreVertical className="w-4 h-4" />
@@ -47,7 +47,7 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
           <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg]">
             {/* Background track circle */}
             <circle
-              stroke="#EDE9FE"
+              stroke="var(--chart-track)"
               fill="transparent"
               strokeWidth={stroke}
               r={normalizedRadius}
@@ -56,7 +56,7 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
             />
             {/* Animated progress ring */}
             <circle
-              stroke="#6C5CE7"
+              stroke="var(--chart-primary)"
               fill="transparent"
               strokeWidth={stroke}
               strokeDasharray={`${circumference} ${circumference}`}
@@ -71,15 +71,15 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
 
           {/* Inner Avatar */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <img
+            <img height="160" width="160" loading="lazy"
               src={currentUser.avatar}
               alt={currentUser.name}
-              className="w-20 h-20 rounded-full object-cover ring-4 ring-[#FAF8FF] shadow-xs"
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-brand-50 shadow-xs"
             />
           </div>
 
           {/* 32% Badge at ~2 o'clock */}
-          <div className="absolute top-1 right-2 bg-brand-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-purple-glow">
+          <div className="absolute top-1 right-2 bg-brand-500 text-white text-meta font-bold px-2 py-0.5 rounded-full shadow-purple-glow">
             {currentUser.completionPercentage}%
           </div>
         </div>
@@ -90,7 +90,7 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
             <span>Good Morning Jason</span>
             <span role="img" aria-label="fire">🔥</span>
           </h3>
-          <p className="text-xs text-slateText-muted mt-1 max-w-[210px] mx-auto leading-relaxed">
+          <p className="text-xs text-slateText-muted mt-1 max-w-52 mx-auto leading-relaxed">
             Continue your learning to achieve your target!
           </p>
         </div>
@@ -109,13 +109,13 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
               tickLine={false}
               ticks={[0, 20, 40, 60]}
               domain={[0, 60]}
-              tick={{ fill: '#A0A3BD', fontSize: 11, fontWeight: 500 }}
+              tick={{ fill: 'var(--chart-muted)', fontSize: 11, fontWeight: 500 }}
             />
             <XAxis
               dataKey="range"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#A0A3BD', fontSize: 11, fontWeight: 500 }}
+              tick={{ fill: 'var(--chart-muted)', fontSize: 11, fontWeight: 500 }}
               dy={6}
             />
             <Tooltip
@@ -123,7 +123,7 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="bg-[#1E1B39] text-white text-xs py-1.5 px-3 rounded-xl shadow-lg">
+                    <div className="bg-content-primary text-content-inverse text-xs py-1.5 px-3 rounded-xl shadow-lg">
                       <p className="font-semibold">{payload[0].payload.range}</p>
                       <p className="text-brand-300 font-bold">{payload[0].value} hrs spent</p>
                     </div>
@@ -140,7 +140,7 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={entry.highlighted ? '#6C5CE7' : '#DCD6FD'}
+                  fill={entry.highlighted ? 'var(--chart-primary)' : 'var(--chart-secondary)'}
                   className="transition-all duration-300 hover:opacity-90"
                 />
               ))}

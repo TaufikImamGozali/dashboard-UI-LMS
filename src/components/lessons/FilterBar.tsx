@@ -42,7 +42,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             id="filter-level"
             value={selectedLevel}
             onChange={(e) => onSelectLevel(e.target.value as CourseLevel)}
-            className="pl-9 pr-8 py-2 bg-white hover:bg-[#F5F6FA] text-slateText-primary text-xs font-semibold rounded-full border border-slate-200/80 focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all appearance-none cursor-pointer"
+            className="pl-9 pr-8 py-2 bg-surface hover:bg-surface-muted text-slateText-primary text-xs font-semibold rounded-full border border-slate-200/80 focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all appearance-none cursor-pointer"
           >
             <option value="All">All Levels</option>
             <option value="Beginner">Beginner</option>
@@ -66,7 +66,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             id="filter-sort"
             value={selectedSort}
             onChange={(e) => onSelectSort(e.target.value as SortOption)}
-            className="pl-9 pr-8 py-2 bg-white hover:bg-[#F5F6FA] text-slateText-primary text-xs font-semibold rounded-full border border-slate-200/80 focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all appearance-none cursor-pointer"
+            className="pl-9 pr-8 py-2 bg-surface hover:bg-surface-muted text-slateText-primary text-xs font-semibold rounded-full border border-slate-200/80 focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all appearance-none cursor-pointer"
           >
             <option value="newest">Sort: Newest</option>
             <option value="popular">Sort: Most Popular</option>

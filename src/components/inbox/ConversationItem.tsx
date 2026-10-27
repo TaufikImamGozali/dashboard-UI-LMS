@@ -43,14 +43,14 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     >
       <div className="flex items-center gap-3">
         <div className="relative shrink-0">
-          <img
+          <img height="160" width="160" loading="lazy"
             src={conversation.contact.avatar}
             alt={conversation.contact.name}
-            className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-xs"
+            className="h-11 w-11 rounded-full object-cover ring-2 ring-surface shadow-xs"
           />
           {conversation.contact.isOnline && (
             <span
-              className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white"
+              className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-surface"
               aria-label="Online"
             />
           )}
@@ -61,7 +61,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
             <p className="min-w-0 flex-1 truncate text-sm font-bold text-slateText-primary">
               {conversation.contact.name}
             </p>
-            <time className="shrink-0 text-[10px] font-medium text-slateText-muted">
+            <time className="shrink-0 text-micro font-medium text-slateText-muted">
               {formatListTime(conversation.updatedAt, referenceTime)}
             </time>
           </div>
@@ -77,7 +77,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
               <span className="truncate">{preview}</span>
             </p>
             {conversation.unreadCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[10px] font-bold text-white">
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1.5 text-micro font-bold text-white">
                 {conversation.unreadCount}
               </span>
             )}

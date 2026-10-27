@@ -2,7 +2,7 @@ import React from 'react';
 import { Star, Users, Clock, Calendar, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { CourseDetail } from '../../types';
-import { CategoryBadge } from '../CategoryBadge';
+import { TagBadge } from '../ui/TagBadge';
 
 interface CourseHeaderProps {
   course: CourseDetail;
@@ -28,7 +28,7 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({ course }) => {
 
       {/* Category Pill */}
       <div>
-        <CategoryBadge category={course.category} label={course.categoryLabel} />
+        <TagBadge category={course.category} label={course.categoryLabel} />
       </div>
 
       {/* Main Course Title */}

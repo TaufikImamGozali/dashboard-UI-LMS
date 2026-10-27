@@ -7,7 +7,7 @@ import { FilterBar } from '../components/lessons/FilterBar';
 import { StatusTabs } from '../components/lessons/StatusTabs';
 import { CourseList } from '../components/lessons/CourseList';
 import { CourseSkeleton } from '../components/lessons/CourseSkeleton';
-import { EmptyState } from '../components/lessons/EmptyState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination } from '../components/lessons/Pagination';
 
 const ITEMS_PER_PAGE = 9;
@@ -32,10 +32,6 @@ export const LessonPage: React.FC = () => {
   }, []);
 
   // ─── Reset page on filter change ────────────────────────────────────────────
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, selectedLevel, selectedSort, selectedStatus]);
-
   // ─── Filtering + Sorting logic ──────────────────────────────────────────────
   const filtered = useMemo(() => {
     let result = [...courses];
@@ -141,17 +137,17 @@ export const LessonPage: React.FC = () => {
       {/* Filter Bar: category chips + sort + level */}
       <FilterBar
         selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
+        onSelectCategory={(value) => { setSelectedCategory(value); setCurrentPage(1); }}
         selectedLevel={selectedLevel}
-        onSelectLevel={setSelectedLevel}
+        onSelectLevel={(value) => { setSelectedLevel(value); setCurrentPage(1); }}
         selectedSort={selectedSort}
-        onSelectSort={setSelectedSort}
+        onSelectSort={(value) => { setSelectedSort(value); setCurrentPage(1); }}
       />
 
       {/* Status Tabs */}
       <StatusTabs
         selectedStatus={selectedStatus}
-        onSelectStatus={setSelectedStatus}
+        onSelectStatus={(value) => { setSelectedStatus(value); setCurrentPage(1); }}
         statusCounts={statusCounts}
       />
 
@@ -160,7 +156,12 @@ export const LessonPage: React.FC = () => {
         {isLoading ? (
           <CourseSkeleton viewMode={viewMode} count={ITEMS_PER_PAGE} />
         ) : paginated.length === 0 ? (
-          <EmptyState onResetFilters={handleResetFilters} />
+          <EmptyState
+            title="No Lessons Found"
+            description="No courses match your selected filters. Try expanding your search."
+            actionLabel="Reset Filters"
+            onAction={handleResetFilters}
+          />
         ) : (
           <>
             <CourseList

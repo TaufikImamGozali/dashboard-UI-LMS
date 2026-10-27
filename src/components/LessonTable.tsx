@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import type { Lesson } from '../types';
-import { CategoryBadge } from './CategoryBadge';
+import { TagBadge } from './ui/TagBadge';
 
 interface LessonTableProps {
   lessons: Lesson[];
@@ -15,7 +15,7 @@ export const LessonTable: React.FC<LessonTableProps> = ({
   onSeeAllClick,
 }) => {
   return (
-    <div className="bg-white rounded-[26px] p-5 sm:p-6 border border-[#EEF0F6] shadow-xs">
+    <div className="bg-surface rounded-card p-5 sm:p-6 border border-outline-subtle shadow-xs">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-slateText-primary tracking-tight">
@@ -33,23 +33,23 @@ export const LessonTable: React.FC<LessonTableProps> = ({
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-[#F0F1F6] text-[11px] font-bold text-slateText-muted uppercase tracking-wider">
+            <tr className="border-b border-outline-subtle text-meta font-bold text-slateText-muted uppercase tracking-wider">
               <th className="pb-3 pl-2 font-semibold">Mentor</th>
               <th className="pb-3 px-3 font-semibold text-center">Type</th>
               <th className="pb-3 px-4 font-semibold">Desc</th>
               <th className="pb-3 pr-2 font-semibold text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#F6F7FA]">
+          <tbody className="divide-y divide-outline-subtle">
             {lessons.map((lesson) => (
               <tr
                 key={lesson.id}
-                className="group hover:bg-[#F9FAFC] transition-colors"
+                className="group hover:bg-surface-muted transition-colors"
               >
                 {/* Mentor Column */}
                 <td className="py-3.5 pl-2">
                   <div className="flex items-center gap-3">
-                    <img
+                    <img height="160" width="160" loading="lazy"
                       src={lesson.mentorAvatar}
                       alt={lesson.mentorName}
                       className="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200 group-hover:scale-105 transition-transform"
@@ -58,7 +58,7 @@ export const LessonTable: React.FC<LessonTableProps> = ({
                       <p className="text-xs font-bold text-slateText-primary group-hover:text-brand-500 transition-colors">
                         {lesson.mentorName}
                       </p>
-                      <p className="text-[11px] text-slateText-muted">
+                      <p className="text-meta text-slateText-muted">
                         {lesson.date}
                       </p>
                     </div>
@@ -67,7 +67,7 @@ export const LessonTable: React.FC<LessonTableProps> = ({
 
                 {/* Type Column */}
                 <td className="py-3.5 px-3 text-center">
-                  <CategoryBadge
+                  <TagBadge
                     category={lesson.type}
                     label={lesson.typeLabel}
                   />
@@ -84,7 +84,7 @@ export const LessonTable: React.FC<LessonTableProps> = ({
                 <td className="py-3.5 pr-2 text-right">
                   <button
                     onClick={() => onActionClick && onActionClick(lesson)}
-                    className="w-8 h-8 rounded-full border border-[#E5E7EB] hover:border-brand-500 hover:bg-brand-500 hover:text-white flex items-center justify-center text-slateText-secondary transition-all duration-200 group/btn ml-auto shadow-2xs"
+                    className="w-8 h-8 rounded-full border border-outline hover:border-brand-500 hover:bg-brand-500 hover:text-white flex items-center justify-center text-slateText-secondary transition-all duration-200 group/btn ml-auto shadow-2xs"
                     aria-label={`Open lesson: ${lesson.description}`}
                   >
                     <ArrowUpRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
@@ -101,11 +101,11 @@ export const LessonTable: React.FC<LessonTableProps> = ({
         {lessons.map((lesson) => (
           <div
             key={lesson.id}
-            className="p-3.5 rounded-2xl bg-[#F8F9FC] border border-[#EEF0F6] space-y-2.5"
+            className="p-3.5 rounded-2xl bg-surface-muted border border-outline-subtle space-y-2.5"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <img
+                <img height="160" width="160" loading="lazy"
                   src={lesson.mentorAvatar}
                   alt={lesson.mentorName}
                   className="w-8 h-8 rounded-full object-cover"
@@ -114,12 +114,12 @@ export const LessonTable: React.FC<LessonTableProps> = ({
                   <p className="text-xs font-bold text-slateText-primary">
                     {lesson.mentorName}
                   </p>
-                  <p className="text-[10px] text-slateText-muted">
+                  <p className="text-micro text-slateText-muted">
                     {lesson.date}
                   </p>
                 </div>
               </div>
-              <CategoryBadge category={lesson.type} label={lesson.typeLabel} />
+              <TagBadge category={lesson.type} label={lesson.typeLabel} />
             </div>
 
             <div className="flex items-center justify-between pt-1">
@@ -128,7 +128,7 @@ export const LessonTable: React.FC<LessonTableProps> = ({
               </p>
               <button
                 onClick={() => onActionClick && onActionClick(lesson)}
-                className="w-7 h-7 shrink-0 rounded-full border border-[#E5E7EB] hover:border-brand-500 hover:bg-brand-500 hover:text-white flex items-center justify-center text-slateText-secondary transition-colors"
+                className="w-7 h-7 shrink-0 rounded-full border border-outline hover:border-brand-500 hover:bg-brand-500 hover:text-white flex items-center justify-center text-slateText-secondary transition-colors"
                 aria-label={`Open lesson: ${lesson.description}`}
               >
                 <ArrowUpRight className="w-3.5 h-3.5" />

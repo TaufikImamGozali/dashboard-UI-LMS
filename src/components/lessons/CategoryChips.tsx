@@ -34,7 +34,7 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
             className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 select-none ${
               isActive
                 ? 'bg-brand-500 text-white shadow-purple-glow'
-                : 'bg-white hover:bg-slate-50 text-slateText-secondary hover:text-slateText-primary border border-slate-200/80'
+                : 'bg-surface hover:bg-slate-50 text-slateText-secondary hover:text-slateText-primary border border-slate-200/80'
             }`}
           >
             {cat.label}

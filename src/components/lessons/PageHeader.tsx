@@ -31,7 +31,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       {/* Grid / List View Toggle */}
       <div
-        className="flex items-center bg-[#F5F6FA] p-1 rounded-full self-start sm:self-auto border border-slate-200/60"
+        className="flex items-center bg-surface-muted p-1 rounded-full self-start sm:self-auto border border-slate-200/60"
         role="group"
         aria-label="View mode toggle"
       >
@@ -42,7 +42,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           aria-pressed={viewMode === 'grid'}
           className={`p-2 rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
             viewMode === 'grid'
-              ? 'bg-white text-brand-500 shadow-xs'
+              ? 'bg-surface text-brand-500 shadow-xs'
               : 'text-slateText-muted hover:text-slateText-primary'
           }`}
         >
@@ -56,7 +56,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           aria-pressed={viewMode === 'list'}
           className={`p-2 rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
             viewMode === 'list'
-              ? 'bg-white text-brand-500 shadow-xs'
+              ? 'bg-surface text-brand-500 shadow-xs'
               : 'text-slateText-muted hover:text-slateText-primary'
           }`}
         >

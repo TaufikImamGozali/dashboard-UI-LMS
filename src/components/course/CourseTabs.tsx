@@ -54,7 +54,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
               <span>{tab.label}</span>
               {tab.count !== undefined && (
                 <span
-                  className={`ml-2 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                  className={`ml-2 px-2 py-0.5 rounded-full text-meta font-semibold ${
                     isActive
                       ? 'bg-brand-50 text-brand-500'
                       : 'bg-slate-100 text-slateText-muted'
@@ -94,7 +94,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
             </div>
 
             {/* What you will learn */}
-            <div className="p-5 sm:p-6 rounded-[22px] bg-brand-surface border border-slate-200/70 space-y-3">
+            <div className="p-5 sm:p-6 rounded-card bg-brand-surface border border-slate-200/70 space-y-3">
               <h2 className="text-sm font-bold text-slateText-primary uppercase tracking-wider">
                 What you'll learn
               </h2>
@@ -166,7 +166,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
             className="space-y-6 animate-fadeIn"
           >
             {/* Rating Summary Card */}
-            <div className="p-5 sm:p-6 rounded-[22px] bg-brand-surface border border-slate-200/70 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+            <div className="p-5 sm:p-6 rounded-card bg-brand-surface border border-slate-200/70 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
               <div className="space-y-1 sm:border-r sm:border-slate-200 sm:pr-8">
                 <p className="text-4xl font-extrabold text-slateText-primary">
                   {course.rating.toFixed(1)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Compass, ArrowRight } from 'lucide-react';
 import { Sidebar } from '../components/Sidebar';
@@ -15,41 +15,22 @@ import { mockCoursesDetail } from '../data/courses';
 import { mockCourses, mockFriends } from '../data/mockData';
 import type { CourseDetail, CurriculumLesson } from '../types';
 
-export const CourseDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+const firstAvailableLesson = (course: CourseDetail | null): CurriculumLesson | null => {
+  if (!course) return null;
+  for (const section of course.sections) {
+    const lesson = section.lessons.find((item) => !item.isCompleted && !item.isLocked);
+    if (lesson) return lesson;
+  }
+  return course.sections[0]?.lessons[0] ?? null;
+};
 
-  const [courseData, setCourseData] = useState<CourseDetail | null>(null);
-  const [activeLesson, setActiveLesson] = useState<CurriculumLesson | null>(null);
+const CourseDetailContent: React.FC<{ courseId?: string }> = ({ courseId }) => {
+  const navigate = useNavigate();
+  const initialCourse = courseId ? mockCoursesDetail[courseId] ?? null : null;
+  const [courseData, setCourseData] = useState<CourseDetail | null>(initialCourse);
+  const [activeLesson, setActiveLesson] = useState<CurriculumLesson | null>(() => firstAvailableLesson(initialCourse));
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  // Load course details whenever :id changes
-  useEffect(() => {
-    if (id && mockCoursesDetail[id]) {
-      const data = mockCoursesDetail[id];
-      setCourseData(data);
-
-      // Find first uncompleted lesson, or default to the first lesson
-      let firstAvailableLesson: CurriculumLesson | null = null;
-      for (const section of data.sections) {
-        for (const lesson of section.lessons) {
-          if (!lesson.isCompleted && !lesson.isLocked) {
-            firstAvailableLesson = lesson;
-            break;
-          }
-        }
-        if (firstAvailableLesson) break;
-      }
-
-      setActiveLesson(
-        firstAvailableLesson || data.sections[0]?.lessons[0] || null
-      );
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      setCourseData(null);
-    }
-  }, [id]);
 
   // Mark lesson as complete & update state
   const handleMarkAsComplete = (lessonId: string) => {
@@ -124,7 +105,7 @@ export const CourseDetailPage: React.FC = () => {
   if (!courseData) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center p-4 sm:p-8 font-sans">
-        <div className="w-full max-w-lg bg-white rounded-[32px] p-8 sm:p-12 text-center shadow-container border border-slate-200/80 space-y-5 animate-fadeIn">
+        <div className="w-full max-w-lg bg-surface rounded-4xl p-8 sm:p-12 text-center shadow-container border border-slate-200/80 space-y-5 animate-fadeIn">
           <div className="w-16 h-16 rounded-2xl bg-brand-50 text-brand-500 flex items-center justify-center mx-auto shadow-purple-glow">
             <Compass className="w-8 h-8 stroke-[2]" />
           </div>
@@ -172,7 +153,7 @@ export const CourseDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-3 sm:p-5 lg:p-8 font-sans">
       {/* Outer Shell matching Dashboard design */}
-      <div className="w-full max-w-[1440px] bg-brand-card rounded-[28px] sm:rounded-[36px] shadow-container border border-[#E6E8F0] overflow-hidden flex flex-col md:flex-row min-h-[920px]">
+      <div className="w-full max-w-app bg-brand-card rounded-shell sm:rounded-shell-lg shadow-container border border-outline overflow-hidden flex flex-col md:flex-row min-h-app">
         
         {/* Column 1: Left Sidebar */}
         <Sidebar
@@ -185,7 +166,7 @@ export const CourseDetailPage: React.FC = () => {
         />
 
         {/* Column 2 & 3: Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 bg-white">
+        <div className="flex-1 flex flex-col min-w-0 bg-surface">
           {/* Topbar */}
           <Topbar
             searchQuery={searchQuery}
@@ -194,7 +175,7 @@ export const CourseDetailPage: React.FC = () => {
           />
 
           {/* Main Course Content */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto no-scrollbar space-y-10">
+          <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto no-scrollbar space-y-10">
             {/* Top Grid: Video & Tabs (Col 1-8) vs Right Info Panel (Col 9-12) */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
               
@@ -269,12 +250,12 @@ export const CourseDetailPage: React.FC = () => {
       </div>
 
       {/* Mobile Sticky Bottom CTA (<768px) */}
-      <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md p-3 px-4 border-t border-slate-200/80 flex items-center justify-between gap-4 z-40 md:hidden shadow-lg">
+      <div className="fixed bottom-0 inset-x-0 bg-surface/95 backdrop-blur-md p-3 px-4 border-t border-slate-200/80 flex items-center justify-between gap-4 z-sticky md:hidden shadow-lg">
         <div>
           <p className="text-xs font-bold text-slateText-primary leading-tight">
             {completedLessons} of {totalLessons} Lessons
           </p>
-          <p className="text-[11px] text-slateText-muted">
+          <p className="text-meta text-slateText-muted">
             {Math.round((completedLessons / totalLessons) * 100)}% completed
           </p>
         </div>
@@ -291,4 +272,9 @@ export const CourseDetailPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+export const CourseDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  return <CourseDetailContent key={id ?? 'missing'} courseId={id} />;
 };

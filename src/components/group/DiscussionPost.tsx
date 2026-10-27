@@ -20,14 +20,14 @@ const relativeTime = (timestamp: string) => {
 export const DiscussionPost: React.FC<DiscussionPostProps> = ({ post, onToggleLike, onAddComment }) => {
   const [commentsOpen, setCommentsOpen] = useState(false);
   return (
-    <article className="rounded-3xl border border-slate-100 bg-white p-5 shadow-card">
+    <article className="rounded-3xl border border-slate-100 bg-surface p-5 shadow-card">
       <div className="flex items-start gap-3">
-        <img src={post.author.avatar} alt={post.author.name} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+        <img height="160" width="160" loading="lazy" src={post.author.avatar} alt={post.author.name} className="h-10 w-10 shrink-0 rounded-full object-cover" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <h3 className="text-sm font-extrabold text-slateText-primary">{post.author.name}</h3>
-            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[9px] font-bold uppercase text-brand-600">{post.author.role}</span>
-            <time dateTime={post.createdAt} className="text-[10px] text-slateText-muted">{relativeTime(post.createdAt)}</time>
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-micro font-bold uppercase text-brand-600">{post.author.role}</span>
+            <time dateTime={post.createdAt} className="text-micro text-slateText-muted">{relativeTime(post.createdAt)}</time>
           </div>
           <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slateText-secondary">{post.content}</p>
           <div className="mt-4 flex items-center gap-4 border-t border-slate-100 pt-3">

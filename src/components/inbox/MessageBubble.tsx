@@ -29,13 +29,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           }`}
         >
           {message.attachment && (
-            <div className={`mb-1 flex items-center gap-3 rounded-xl p-2.5 ${isMine ? 'bg-white/15' : 'bg-white'}`}>
+            <div className={`mb-1 flex items-center gap-3 rounded-xl p-2.5 ${isMine ? 'bg-white/15' : 'bg-surface'}`}>
               <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${isMine ? 'bg-white/20' : 'bg-brand-50 text-brand-500'}`}>
                 <FileText className="h-4 w-4" />
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-xs font-bold">{message.attachment.name}</span>
-                <span className={`block text-[10px] ${isMine ? 'text-white/70' : 'text-slateText-muted'}`}>
+                <span className={`block text-micro ${isMine ? 'text-white/70' : 'text-slateText-muted'}`}>
                   {formatSize(message.attachment.size)}
                 </span>
               </span>
@@ -43,7 +43,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           )}
           {message.text && <p className="whitespace-pre-wrap break-words">{message.text}</p>}
         </div>
-        <div className="mt-1 flex items-center gap-1 px-1 text-[10px] text-slateText-muted">
+        <div className="mt-1 flex items-center gap-1 px-1 text-micro text-slateText-muted">
           <time dateTime={message.sentAt}>{time}</time>
           {isMine && (
             message.status === 'read'

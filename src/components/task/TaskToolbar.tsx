@@ -33,7 +33,7 @@ export const TaskToolbar: React.FC<TaskToolbarProps> = ({
       <div
         role="group"
         aria-label="Task view toggle"
-        className="flex items-center bg-[#F5F6FA] p-1 rounded-full self-start border border-slate-200/60 shrink-0"
+        className="flex items-center bg-surface-muted p-1 rounded-full self-start border border-slate-200/60 shrink-0"
       >
         <button
           type="button"
@@ -42,7 +42,7 @@ export const TaskToolbar: React.FC<TaskToolbarProps> = ({
           aria-label="Board view"
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
             viewMode === 'board'
-              ? 'bg-white text-brand-500 shadow-xs'
+              ? 'bg-surface text-brand-500 shadow-xs'
               : 'text-slateText-muted hover:text-slateText-primary'
           }`}
         >
@@ -56,7 +56,7 @@ export const TaskToolbar: React.FC<TaskToolbarProps> = ({
           aria-label="List view"
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
             viewMode === 'list'
-              ? 'bg-white text-brand-500 shadow-xs'
+              ? 'bg-surface text-brand-500 shadow-xs'
               : 'text-slateText-muted hover:text-slateText-primary'
           }`}
         >
@@ -74,7 +74,7 @@ export const TaskToolbar: React.FC<TaskToolbarProps> = ({
           placeholder="Search tasks…"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/80 rounded-full text-sm text-slateText-primary placeholder:text-slateText-muted focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all"
+          className="w-full pl-10 pr-4 py-2.5 bg-surface border border-slate-200/80 rounded-full text-sm text-slateText-primary placeholder:text-slateText-muted focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all"
         />
       </div>
 
@@ -85,7 +85,7 @@ export const TaskToolbar: React.FC<TaskToolbarProps> = ({
           id="task-course-filter"
           value={selectedCourse}
           onChange={(e) => onCourseChange(e.target.value)}
-          className="pl-4 pr-8 py-2.5 bg-white border border-slate-200/80 rounded-full text-xs font-semibold text-slateText-primary appearance-none cursor-pointer focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all"
+          className="pl-4 pr-8 py-2.5 bg-surface border border-slate-200/80 rounded-full text-xs font-semibold text-slateText-primary appearance-none cursor-pointer focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-300 transition-all"
         >
           <option value="all">All Courses</option>
           {courseOptions.map((c) => (

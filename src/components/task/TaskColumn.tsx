@@ -25,14 +25,14 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
   return (
-    <div className="flex flex-col min-w-[260px] sm:min-w-0 flex-1">
+    <div className="flex flex-col min-w-64 sm:min-w-0 flex-1">
       {/* Column Header */}
-      <div className={`flex items-center gap-2.5 px-4 py-3 rounded-[20px] mb-3 ${column.headerBg}`}>
+      <div className={`flex items-center gap-2.5 px-4 py-3 rounded-card mb-3 ${column.headerBg}`}>
         <div className={`w-2.5 h-2.5 rounded-full ${column.accentColor}`} />
         <span className="text-sm font-extrabold text-slateText-primary tracking-tight">
           {column.label}
         </span>
-        <span className="ml-auto bg-white rounded-full text-[11px] font-bold text-slateText-secondary px-2.5 py-0.5 shadow-2xs">
+        <span className="ml-auto bg-surface rounded-full text-meta font-bold text-slateText-secondary px-2.5 py-0.5 shadow-2xs">
           {tasks.length}
         </span>
       </div>
@@ -40,7 +40,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
       {/* Drop Zone */}
       <div
         ref={setNodeRef}
-        className={`flex-1 flex flex-col gap-3 p-2 rounded-[20px] min-h-[200px] transition-colors duration-200 ${
+        className={`flex-1 flex flex-col gap-3 p-2 rounded-card min-h-dropzone transition-colors duration-200 ${
           isOver ? 'bg-brand-50 ring-2 ring-brand-300 ring-inset' : 'bg-slate-50/60'
         }`}
       >

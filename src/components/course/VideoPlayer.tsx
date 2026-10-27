@@ -62,7 +62,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Video Container */}
       <div
         ref={containerRef}
-        className="relative aspect-video w-full rounded-[24px] overflow-hidden bg-slate-900 shadow-card group select-none"
+        className="relative aspect-video w-full rounded-card overflow-hidden bg-slate-900 shadow-card group select-none"
       >
         {lesson?.videoUrl ? (
           <video
@@ -84,7 +84,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             onClick={togglePlay}
           />
         ) : (
-          <img
+          <img height="160" width="160" loading="lazy"
             src={thumbnail}
             alt={lesson?.title || 'Course video thumbnail'}
             className="w-full h-full object-cover opacity-90"
@@ -142,7 +142,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               className="h-full bg-brand-500 rounded-full relative transition-all"
               style={{ width: `${progress}%` }}
             >
-              <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-md scale-0 group-hover/bar:scale-100 transition-transform" />
+              <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-surface rounded-full shadow-md scale-0 group-hover/bar:scale-100 transition-transform" />
             </div>
           </div>
 

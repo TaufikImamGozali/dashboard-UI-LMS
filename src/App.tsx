@@ -1,78 +1,32 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
-import { HeroBanner } from './components/HeroBanner';
-import { CourseProgressCard } from './components/CourseProgressCard';
-import { ContinueWatchingSection } from './components/ContinueWatchingSection';
-import { LessonTable } from './components/LessonTable';
-import { StatisticCard } from './components/StatisticCard';
-import { MentorList } from './components/MentorList';
 import { PlaceholderView } from './components/PlaceholderView';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import { CourseDetailPage } from './pages/CourseDetailPage';
-import { LessonPage } from './pages/LessonPage';
-import { TaskPage } from './pages/TaskPage';
-import { InboxPage } from './pages/InboxPage';
-import { GroupPage } from './pages/GroupPage';
-import { GroupDetailPage } from './pages/GroupDetailPage';
-import {
-  mockFriends,
-  mockProgressSummaries,
-  mockCourses,
-  mockLessons,
-  mockMentors,
-  mockStatistics,
-} from './data/mockData';
-import type { Course, Lesson, ProgressSummary } from './types';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { RouteSkeleton } from './components/ui/RouteSkeleton';
+import { mockFriends } from './data/mockData';
+
+const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })));
+const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage').then((module) => ({ default: module.CourseDetailPage })));
+const LessonPage = lazy(() => import('./pages/LessonPage').then((module) => ({ default: module.LessonPage })));
+const TaskPage = lazy(() => import('./pages/TaskPage').then((module) => ({ default: module.TaskPage })));
+const InboxPage = lazy(() => import('./pages/InboxPage').then((module) => ({ default: module.InboxPage })));
+const GroupPage = lazy(() => import('./pages/GroupPage').then((module) => ({ default: module.GroupPage })));
+const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage').then((module) => ({ default: module.GroupDetailPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 
 function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
   // State
-  const [courses, setCourses] = useState<Course[]>(mockCourses);
-  const [mentors, setMentors] = useState(mockMentors);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  // Handlers
-  const handleToggleFavorite = (courseId: string) => {
-    setCourses((prev) =>
-      prev.map((c) =>
-        c.id === courseId ? { ...c, isFavorite: !c.isFavorite } : c
-      )
-    );
-  };
-
-  const handleToggleFollow = (mentorId: string) => {
-    setMentors((prev) =>
-      prev.map((m) =>
-        m.id === mentorId ? { ...m, isFollowing: !m.isFollowing } : m
-      )
-    );
-  };
-
-  const handleCourseClick = (course: Course) => {
-    navigate(`/course/${course.id}`);
-  };
-
-  const handleProgressCardClick = (summary: ProgressSummary) => {
-    if (summary.category === 'design') navigate('/course/c2');
-    else if (summary.category === 'branding') navigate('/course/c3');
-    else if (summary.category === 'frontend') navigate('/course/c1');
-    else navigate('/course/c1');
-  };
-
-  const handleLessonClick = (lesson: Lesson) => {
-    if (lesson.type === 'design') navigate('/course/c2');
-    else if (lesson.type === 'branding') navigate('/course/c3');
-    else if (lesson.type === 'frontend') navigate('/course/c1');
-    else navigate('/course/c1');
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('coursue_auth');
@@ -82,7 +36,7 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-3 sm:p-5 lg:p-8 font-sans">
       {/* Outer Rounded App Container matching reference design */}
-      <div className="w-full max-w-[1440px] bg-brand-card rounded-[28px] sm:rounded-[36px] shadow-container border border-[#E6E8F0] overflow-hidden flex flex-col md:flex-row min-h-[920px]">
+      <div className="w-full max-w-app bg-brand-card rounded-shell sm:rounded-shell-lg shadow-container border border-outline overflow-hidden flex flex-col md:flex-row min-h-app">
         {/* Column 1: Left Sidebar */}
         <Sidebar
           currentPath={location.pathname}
@@ -94,7 +48,7 @@ function DashboardLayout() {
         />
 
         {/* Column 2 & 3: Main Area (Center + Right) */}
-        <div className="flex-1 flex flex-col min-w-0 bg-white">
+        <div className="flex-1 flex flex-col min-w-0 bg-surface">
           {/* Topbar spans center and right header */}
           <Topbar
             searchQuery={searchQuery}
@@ -103,66 +57,12 @@ function DashboardLayout() {
           />
 
           {/* Body Content */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto no-scrollbar">
+          <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto no-scrollbar">
             <Routes>
               {/* Main Dashboard Route */}
               <Route
                 path="/"
-                element={
-                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-7 items-start">
-                    {/* Center Column: 8 cols on xl */}
-                    <div className="xl:col-span-8 space-y-6 lg:space-y-7">
-                      {/* Hero Gradient Banner */}
-                      <HeroBanner
-                        onJoinClick={() => navigate('/course/c1')}
-                      />
-
-                      {/* Three Progress Cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-                        {mockProgressSummaries.map((summary) => (
-                          <CourseProgressCard
-                            key={summary.id}
-                            progress={summary}
-                            onClick={() => handleProgressCardClick(summary)}
-                          />
-                        ))}
-                      </div>
-
-                      {/* Continue Watching Section */}
-                      <ContinueWatchingSection
-                        courses={courses}
-                        searchQuery={searchQuery}
-                        onToggleFavorite={handleToggleFavorite}
-                        onCourseClick={handleCourseClick}
-                      />
-
-                      {/* Your Lesson Table */}
-                      <LessonTable
-                        lessons={mockLessons}
-                        onActionClick={handleLessonClick}
-                        onSeeAllClick={() => navigate('/lesson')}
-                      />
-                    </div>
-
-                    {/* Column 3: Right Panel (~320px, 4 cols on xl) */}
-                    <div className="xl:col-span-4 space-y-6 lg:space-y-7">
-                      {/* Statistic Card with circular progress ring & Recharts bar chart */}
-                      <StatisticCard data={mockStatistics} />
-
-                      {/* Your Mentor Card with follow toggle and See All */}
-                      <MentorList
-                        mentors={mentors}
-                        onToggleFollow={handleToggleFollow}
-                        onAddMentor={() =>
-                          alert('Mentor discovery directory opening...')
-                        }
-                        onSeeAllMentors={() =>
-                          alert('All 24 active mentors displayed')
-                        }
-                      />
-                    </div>
-                  </div>
-                }
+                element={<DashboardPage searchQuery={searchQuery} />}
               />
 
               {/* Secondary Dashboard Routes */}
@@ -193,6 +93,7 @@ function DashboardLayout() {
                   />
                 }
               />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
         </div>
@@ -212,8 +113,11 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <a href="#main-content" className="fixed left-4 top-4 z-toast -translate-y-24 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-transform focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">Skip to content</a>
+        <Suspense fallback={<div className="min-h-screen bg-brand-bg p-6"><RouteSkeleton /></div>}>
+          <Routes>
         {/* Public Auth Routes */}
         <Route
           path="/login"
@@ -259,7 +163,9 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-      </Routes>
-    </BrowserRouter>
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

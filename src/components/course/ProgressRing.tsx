@@ -23,7 +23,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
       <svg width={size} height={size} className="rotate-[-90deg]">
         {/* Background Track */}
         <circle
-          stroke="#EDE9FE"
+          stroke="var(--chart-track)"
           fill="transparent"
           strokeWidth={strokeWidth}
           r={radius}
@@ -32,7 +32,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
         />
         {/* Active Progress */}
         <circle
-          stroke="#6C5CE7"
+          stroke="var(--chart-primary)"
           fill="transparent"
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}

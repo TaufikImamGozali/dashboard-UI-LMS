@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heart, Clock, Star, ArrowRight } from 'lucide-react';
 import type { Course } from '../../types';
-import { CategoryBadge } from '../CategoryBadge';
+import { TagBadge } from '../ui/TagBadge';
 
 interface CourseListItemProps {
   course: Course;
@@ -30,13 +30,23 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
   return (
     <div
       onClick={() => onClick(course)}
-      className="bg-white rounded-[22px] p-4 border border-[#EEF0F6] hover:border-[#DFE2EC] shadow-xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 group cursor-pointer"
+      onKeyDown={(event) => {
+        if (event.currentTarget !== event.target) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick(course);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open course: ${course.title}`}
+      className="bg-surface rounded-card p-4 border border-outline-subtle hover:border-outline-strong shadow-xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 group cursor-pointer"
     >
       {/* Left: Thumbnail & Main Info */}
       <div className="flex items-start sm:items-center gap-4 min-w-0 flex-1">
         {/* Thumbnail with Heart Icon */}
         <div className="relative w-28 sm:w-36 h-20 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 shrink-0">
-          <img
+          <img height="160" width="160"
             src={course.thumbnail}
             alt={course.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -52,8 +62,8 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
             }}
             className={`absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-md flex items-center justify-center transition-transform active:scale-90 ${
               course.isFavorite
-                ? 'bg-white text-rose-500 shadow-sm'
-                : 'bg-black/30 text-white hover:bg-white hover:text-rose-500'
+                ? 'bg-surface text-rose-500 shadow-sm'
+                : 'bg-black/30 text-white hover:bg-surface hover:text-rose-500'
             }`}
             aria-label={course.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
@@ -68,13 +78,13 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
         {/* Text Details */}
         <div className="space-y-1.5 min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <CategoryBadge
+            <TagBadge
               category={course.category}
               label={course.categoryLabel}
               className="scale-90 origin-left"
             />
             {course.level && (
-              <span className="text-[11px] font-semibold text-slateText-muted bg-slate-100 px-2 py-0.5 rounded-full">
+              <span className="text-meta font-semibold text-slateText-muted bg-slate-100 px-2 py-0.5 rounded-full">
                 {course.level}
               </span>
             )}
@@ -87,7 +97,7 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
           {/* Mentor & Rating Row */}
           <div className="flex items-center gap-3 text-xs text-slateText-muted flex-wrap">
             <div className="flex items-center gap-1.5">
-              <img
+              <img height="160" width="160" loading="lazy"
                 src={course.mentor.avatar}
                 alt={course.mentor.name}
                 className="w-5 h-5 rounded-full object-cover ring-1 ring-slate-200"
@@ -128,7 +138,7 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
             <span>Progress</span>
             <span className="text-slateText-primary font-bold">{course.progress}%</span>
           </div>
-          <div className="w-full bg-[#F0F2F7] rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-surface-subtle rounded-full h-1.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${getProgressBarColor()}`}
               style={{ width: `${course.progress}%` }}

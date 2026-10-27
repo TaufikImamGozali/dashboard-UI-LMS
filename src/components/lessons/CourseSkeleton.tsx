@@ -17,10 +17,10 @@ export const CourseSkeleton: React.FC<CourseSkeletonProps> = ({
           {Array.from({ length: count }).map((_, i) => (
             <div
               key={i}
-              className="bg-white rounded-[24px] p-3.5 border border-slate-100 shadow-xs space-y-3.5"
+              className="bg-surface rounded-card p-3.5 border border-slate-100 shadow-xs space-y-3.5"
             >
               {/* Thumbnail Skeleton */}
-              <div className="aspect-[16/10] w-full rounded-[18px] bg-slate-200" />
+              <div className="aspect-[16/10] w-full rounded-2xl bg-slate-200" />
 
               {/* Tag & Title Skeleton */}
               <div className="space-y-2">
@@ -48,7 +48,7 @@ export const CourseSkeleton: React.FC<CourseSkeletonProps> = ({
           {Array.from({ length: count }).map((_, i) => (
             <div
               key={i}
-              className="bg-white rounded-[22px] p-4 border border-slate-100 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className="bg-surface rounded-card p-4 border border-slate-100 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
               <div className="flex items-center gap-4 flex-1">
                 <div className="w-28 sm:w-36 h-20 sm:h-24 rounded-2xl bg-slate-200 shrink-0" />

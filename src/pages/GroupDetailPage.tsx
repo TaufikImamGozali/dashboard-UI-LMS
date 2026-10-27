@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
-import { CalendarDays, ChevronLeft, Info, ShieldCheck } from 'lucide-react';
+import { CalendarDays, Info, ShieldCheck } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ConfirmDialog } from '../components/group/ConfirmDialog';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { DiscussionPost } from '../components/group/DiscussionPost';
 import { GroupHeader } from '../components/group/GroupHeader';
-import { GroupTabs } from '../components/group/GroupTabs';
+import { Tabs } from '../components/ui/Tabs';
 import { MemberCard } from '../components/group/MemberCard';
 import { PostComposer } from '../components/group/PostComposer';
 import { ResourceItem } from '../components/group/ResourceItem';
 import { TopContributors } from '../components/group/TopContributors';
 import { UpcomingSessionCard } from '../components/group/UpcomingSessionCard';
-import { ToastContainer } from '../components/task/Toast';
+import { ToastContainer } from '../components/ui/Toast';
 import { useGroups } from '../hooks/useGroups';
 import { useToast } from '../hooks/useToast';
 import type { GroupDetailTab } from '../types/group';
+import { EmptyState } from '../components/ui/EmptyState';
 
 export const GroupDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,12 +27,7 @@ export const GroupDetailPage: React.FC = () => {
 
   if (!group) {
     return (
-      <div className="flex min-h-[520px] flex-col items-center justify-center rounded-3xl border border-slate-100 bg-white px-6 text-center shadow-card">
-        <span className="flex h-16 w-16 items-center justify-center rounded-3xl bg-brand-50 text-brand-500"><Info className="h-7 w-7" /></span>
-        <h1 className="mt-5 text-2xl font-extrabold text-slateText-primary">Group not found</h1>
-        <p className="mt-2 text-sm text-slateText-muted">This group may have been removed or the link is incorrect.</p>
-        <button type="button" onClick={() => navigate('/group')} className="mt-6 flex items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"><ChevronLeft className="h-4 w-4" /> Back to Groups</button>
-      </div>
+      <EmptyState title="Group not found" description="This group may have been removed or the link is incorrect." actionLabel="Back to Groups" onAction={() => navigate('/group')} icon={<Info className="h-7 w-7" />} headingLevel="h1" className="min-h-empty" />
     );
   }
 
@@ -60,9 +56,9 @@ export const GroupDetailPage: React.FC = () => {
       <GroupHeader group={group} onBack={() => navigate('/group')} onJoin={handleJoin} onLeave={() => setLeaveDialogOpen(true)} onInvite={handleInvite} />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <main className="min-w-0 space-y-5 xl:col-span-8">
-          <div className="rounded-3xl border border-slate-100 bg-white px-4 shadow-card sm:px-5">
-            <GroupTabs
+        <div className="min-w-0 space-y-5 xl:col-span-8">
+          <div className="rounded-3xl border border-slate-100 bg-surface px-4 shadow-card sm:px-5">
+            <Tabs
               ariaLabel="Group content"
               tabs={[
                 { id: 'discussion', label: 'Discussion', count: group.posts.length },
@@ -80,7 +76,7 @@ export const GroupDetailPage: React.FC = () => {
               {group.posts.map((post) => (
                 <DiscussionPost key={post.id} post={post} onToggleLike={() => toggleLike(group.id, post.id)} onAddComment={(content) => addComment(group.id, post.id, content)} />
               ))}
-              {group.posts.length === 0 && <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slateText-muted">No discussions yet. Start the first conversation.</div>}
+              {group.posts.length === 0 && <div className="rounded-3xl border border-dashed border-slate-200 bg-surface p-10 text-center text-sm text-slateText-muted">No discussions yet. Start the first conversation.</div>}
             </div>
           )}
 
@@ -93,20 +89,20 @@ export const GroupDetailPage: React.FC = () => {
           {activeTab === 'resources' && (
             <div className="space-y-3">
               {group.resources.map((resource) => <ResourceItem key={resource.id} resource={resource} onDownload={() => showToast(`Mock download started for ${resource.name}`, 'success')} />)}
-              {group.resources.length === 0 && <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slateText-muted">No resources have been shared yet.</div>}
+              {group.resources.length === 0 && <div className="rounded-3xl border border-dashed border-slate-200 bg-surface p-10 text-center text-sm text-slateText-muted">No resources have been shared yet.</div>}
             </div>
           )}
-        </main>
+        </div>
 
         <aside className="space-y-5 xl:col-span-4">
-          <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-card">
+          <section className="rounded-3xl border border-slate-100 bg-surface p-5 shadow-card">
             <h2 className="text-sm font-extrabold text-slateText-primary">About</h2>
             <p className="mt-3 text-xs leading-relaxed text-slateText-secondary">{group.about}</p>
-            <p className="mt-4 flex items-center gap-2 text-[11px] font-semibold text-slateText-muted"><CalendarDays className="h-4 w-4 text-brand-500" /> Created {new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(new Date(group.createdAt))}</p>
+            <p className="mt-4 flex items-center gap-2 text-meta font-semibold text-slateText-muted"><CalendarDays className="h-4 w-4 text-brand-500" /> Created {new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(new Date(group.createdAt))}</p>
             <div className="mt-5 border-t border-slate-100 pt-4">
               <h3 className="flex items-center gap-2 text-xs font-extrabold text-slateText-primary"><ShieldCheck className="h-4 w-4 text-brand-500" /> Group Rules</h3>
               <ol className="mt-3 space-y-2">
-                {group.rules.map((rule, index) => <li key={rule} className="flex gap-2 text-[11px] leading-relaxed text-slateText-secondary"><span className="font-extrabold text-brand-500">{index + 1}.</span>{rule}</li>)}
+                {group.rules.map((rule, index) => <li key={rule} className="flex gap-2 text-meta leading-relaxed text-slateText-secondary"><span className="font-extrabold text-brand-500">{index + 1}.</span>{rule}</li>)}
               </ol>
             </div>
           </section>

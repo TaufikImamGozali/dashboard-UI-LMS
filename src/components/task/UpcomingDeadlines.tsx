@@ -1,7 +1,7 @@
 import React from 'react';
 import { CalendarDays, AlarmClock } from 'lucide-react';
 import type { Task } from '../../types/task';
-import { CategoryBadge } from '../CategoryBadge';
+import { TagBadge } from '../ui/TagBadge';
 
 interface UpcomingDeadlinesProps {
   tasks: Task[];
@@ -22,7 +22,7 @@ export const UpcomingDeadlines: React.FC<UpcomingDeadlinesProps> = ({ tasks }) =
     .slice(0, 4);
 
   return (
-    <div className="bg-white rounded-[22px] border border-[#EEF0F6] shadow-xs p-5">
+    <div className="bg-surface rounded-card border border-outline-subtle shadow-xs p-5">
       <div className="flex items-center gap-2 mb-4">
         <AlarmClock className="w-4 h-4 text-brand-500" />
         <h3 className="text-sm font-extrabold text-slateText-primary">Upcoming Deadlines</h3>
@@ -48,11 +48,11 @@ export const UpcomingDeadlines: React.FC<UpcomingDeadlinesProps> = ({ tasks }) =
                 className="flex items-start gap-3 pb-3 border-b border-slate-100 last:border-b-0 last:pb-0"
               >
                 <div className="shrink-0 mt-0.5">
-                  <CategoryBadge category={task.courseCategory} label={task.courseLabel} />
+                  <TagBadge category={task.courseCategory} label={task.courseLabel} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-slateText-primary line-clamp-1">{task.title}</p>
-                  <div className={`flex items-center gap-1 mt-0.5 text-[11px] font-semibold ${isUrgent ? 'text-red-500' : 'text-slateText-muted'}`}>
+                  <div className={`flex items-center gap-1 mt-0.5 text-meta font-semibold ${isUrgent ? 'text-red-500' : 'text-slateText-muted'}`}>
                     <CalendarDays className="w-3 h-3" />
                     <span>{label}</span>
                   </div>

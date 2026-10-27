@@ -57,7 +57,7 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
         return (
           <div
             key={section.id}
-            className="rounded-[20px] border border-slate-200/80 bg-white overflow-hidden transition-all duration-200 shadow-2xs"
+            className="rounded-card border border-slate-200/80 bg-surface overflow-hidden transition-all duration-200 shadow-2xs"
           >
             {/* Section Accordion Header */}
             <button
@@ -88,21 +88,24 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
 
             {/* Accordion Lessons List */}
             {isOpen && (
-              <div className="border-t border-slate-100 divide-y divide-slate-100 bg-[#FAFAFC] animate-fadeIn">
+              <div className="border-t border-slate-100 divide-y divide-slate-100 bg-surface-muted animate-fadeIn">
                 {section.lessons.map((lesson) => {
                   const isActive = lesson.id === activeLessonId;
                   const isTooltipVisible = lockedTooltip === lesson.id;
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={lesson.id}
                       onClick={() => handleLessonClick(lesson)}
-                      className={`relative px-5 py-3.5 flex items-center justify-between gap-3 transition-colors cursor-pointer group ${
+                      aria-current={isActive ? 'step' : undefined}
+                      aria-label={`${lesson.title}${lesson.isLocked ? ', locked' : ''}`}
+                      className={`relative w-full px-5 py-3.5 flex items-center justify-between gap-3 text-left transition-colors cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400 ${
                         isActive
                           ? 'bg-brand-50/70 text-brand-600 font-semibold'
                           : lesson.isLocked
                           ? 'opacity-65 hover:bg-slate-100/50 cursor-not-allowed'
-                          : 'hover:bg-white text-slateText-primary'
+                          : 'hover:bg-surface text-slateText-primary'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -136,12 +139,12 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
 
                         {/* Tooltip on locked click */}
                         {isTooltipVisible && (
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-slate-900 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg shadow-lg animate-fadeIn pointer-events-none">
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 z-tooltip bg-slate-900 text-white text-meta font-medium px-3 py-1.5 rounded-lg shadow-lg animate-fadeIn pointer-events-none">
                             Complete previous lessons to unlock
                           </div>
                         )}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

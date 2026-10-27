@@ -47,7 +47,7 @@ export const StatusTabs: React.FC<StatusTabsProps> = ({
           >
             <span>{tab.label}</span>
             <span
-              className={`ml-2 px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
+              className={`ml-2 px-2 py-0.5 rounded-full text-meta font-semibold transition-colors ${
                 isActive
                   ? 'bg-brand-100 text-brand-600'
                   : 'bg-slate-100 text-slateText-muted'

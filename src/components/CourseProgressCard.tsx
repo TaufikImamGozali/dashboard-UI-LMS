@@ -36,7 +36,17 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-[22px] p-4 sm:p-5 border border-[#EEF0F6] hover:border-[#DFE2EC] shadow-xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between gap-3 group ${
+      onKeyDown={(event) => {
+        if (event.currentTarget !== event.target || !onClick) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Open course progress: ${progress.title}` : undefined}
+      className={`bg-surface rounded-card p-4 sm:p-5 border border-outline-subtle hover:border-outline-strong shadow-xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between gap-3 group ${
         onClick ? 'cursor-pointer' : ''
       }`}
     >
@@ -50,10 +60,10 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
 
         {/* Info */}
         <div>
-          <p className="text-[11px] font-medium text-slateText-muted leading-tight">
+          <p className="text-meta font-medium text-slateText-muted leading-tight">
             {progress.watched}/{progress.total} watched
           </p>
-          <h2 className="text-sm sm:text-[15px] font-bold text-slateText-primary mt-0.5 group-hover:text-brand-500 transition-colors">
+          <h2 className="text-sm sm:text-sm font-bold text-slateText-primary mt-0.5 group-hover:text-brand-500 transition-colors">
             {progress.title}
           </h2>
         </div>
@@ -63,7 +73,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
       <button
         type="button"
         onClick={(e) => e.stopPropagation()}
-        className="w-8 h-8 rounded-full flex items-center justify-center text-slateText-muted hover:text-slateText-primary hover:bg-[#F5F6FA] transition-colors"
+        className="w-8 h-8 rounded-full flex items-center justify-center text-slateText-muted hover:text-slateText-primary hover:bg-surface-muted transition-colors"
         aria-label="Options"
       >
         <MoreVertical className="w-4 h-4" />

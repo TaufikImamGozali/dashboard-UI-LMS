@@ -12,7 +12,7 @@ export const CourseMentorCard: React.FC<CourseMentorCardProps> = ({
   onToggleFollow,
 }) => {
   return (
-    <div className="bg-white rounded-[26px] p-5 sm:p-6 border border-[#EEF0F6] shadow-xs space-y-4">
+    <div className="bg-surface rounded-card p-5 sm:p-6 border border-outline-subtle shadow-xs space-y-4">
       {/* Header with Title and Follow Button */}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-slateText-primary tracking-tight">
@@ -25,7 +25,7 @@ export const CourseMentorCard: React.FC<CourseMentorCardProps> = ({
           className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 active:scale-95 ${
             mentor.isFollowing
               ? 'bg-brand-500 border-brand-500 text-white shadow-xs'
-              : 'bg-white hover:bg-[#F5F6FA] border-[#E2E4EC] text-slateText-secondary hover:text-slateText-primary'
+              : 'bg-surface hover:bg-surface-muted border-outline text-slateText-secondary hover:text-slateText-primary'
           }`}
           aria-label={mentor.isFollowing ? `Unfollow ${mentor.name}` : `Follow ${mentor.name}`}
         >
@@ -45,7 +45,7 @@ export const CourseMentorCard: React.FC<CourseMentorCardProps> = ({
 
       {/* Mentor Profile Details */}
       <div className="flex items-start gap-3.5">
-        <img
+        <img height="160" width="160" loading="lazy"
           src={mentor.avatar}
           alt={mentor.name}
           className="w-12 h-12 rounded-full object-cover ring-2 ring-brand-100 shrink-0"
@@ -73,7 +73,7 @@ export const CourseMentorCard: React.FC<CourseMentorCardProps> = ({
       </div>
 
       {/* Mentor Bio */}
-      <p className="text-xs text-slateText-secondary leading-relaxed pt-1 border-t border-[#F5F6FA]">
+      <p className="text-xs text-slateText-secondary leading-relaxed pt-1 border-t border-outline-subtle">
         {mentor.bio}
       </p>
     </div>

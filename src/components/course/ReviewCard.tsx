@@ -8,11 +8,11 @@ interface ReviewCardProps {
 
 export const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
   return (
-    <div className="p-4 sm:p-5 rounded-[20px] bg-white border border-slate-200/70 shadow-2xs space-y-3">
+    <div className="p-4 sm:p-5 rounded-card bg-surface border border-slate-200/70 shadow-2xs space-y-3">
       {/* Header: User avatar, name, date, stars */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <img
+          <img height="160" width="160" loading="lazy"
             src={review.userAvatar}
             alt={review.userName}
             className="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200 shrink-0"
@@ -21,7 +21,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
             <h2 className="text-xs sm:text-sm font-bold text-slateText-primary truncate">
               {review.userName}
             </h2>
-            <p className="text-[11px] text-slateText-muted">{review.date}</p>
+            <p className="text-meta text-slateText-muted">{review.date}</p>
           </div>
         </div>
 

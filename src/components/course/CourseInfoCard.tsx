@@ -38,12 +38,12 @@ export const CourseInfoCard: React.FC<CourseInfoCardProps> = ({ course }) => {
   ];
 
   return (
-    <div className="bg-white rounded-[26px] p-5 sm:p-6 border border-[#EEF0F6] shadow-xs space-y-4">
+    <div className="bg-surface rounded-card p-5 sm:p-6 border border-outline-subtle shadow-xs space-y-4">
       <h2 className="text-base font-bold text-slateText-primary tracking-tight">
         Course Information
       </h2>
 
-      <div className="divide-y divide-[#F5F6FA] text-xs">
+      <div className="divide-y divide-outline-subtle text-xs">
         {infoItems.map((item, idx) => {
           const Icon = item.icon;
           return (

@@ -6,14 +6,16 @@ interface AuthLayoutProps {
   children: React.ReactNode;
 }
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-brand-bg flex items-center justify-center p-3 sm:p-5 lg:p-8 font-sans">
       {/* Outer Rounded Container matching Dashboard */}
-      <div className="w-full max-w-[1080px] bg-brand-card rounded-[28px] sm:rounded-[36px] shadow-container border border-[#E6E8F0] overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[660px]">
+      <div className="w-full max-w-auth bg-brand-card rounded-shell sm:rounded-shell-lg shadow-container border border-outline overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-auth">
         
         {/* Left Column: Form */}
-        <div className="lg:col-span-6 p-6 sm:p-8 md:p-12 flex flex-col justify-between bg-white">
+        <main id="main-content" tabIndex={-1} className="lg:col-span-6 p-6 sm:p-8 md:p-12 flex flex-col justify-between bg-surface">
           {/* Logo Header */}
           <div className="mb-6">
             <Link
@@ -39,12 +41,12 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
           {/* Footer note */}
           <div className="pt-6 mt-6 border-t border-slate-100 text-center text-xs text-slateText-muted">
-            &copy; {new Date().getFullYear()} Coursue Inc. All rights reserved.
+            &copy; {CURRENT_YEAR} Coursue Inc. All rights reserved.
           </div>
-        </div>
+        </main>
 
         {/* Right Column: Visual Gradient Panel (Hidden on screens < 1024px) */}
-        <div className="hidden lg:flex lg:col-span-6 bg-gradient-to-br from-[#604FE9] via-[#6F5FF5] to-[#8C7CF0] p-10 xl:p-12 relative overflow-hidden flex-col justify-between text-white select-none">
+        <div className="hidden lg:flex lg:col-span-6 bg-gradient-to-br from-brand-600 via-brand-500 to-brand-400 p-10 xl:p-12 relative overflow-hidden flex-col justify-between text-white select-none">
           {/* Decorative Sparkle Stars matching Hero Banner */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-30">
             <svg viewBox="0 0 160 160" className="w-48 h-48 fill-white animate-pulse duration-1000">
@@ -69,16 +71,16 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
           <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-brand-dark/20 rounded-full blur-2xl pointer-events-none" />
 
           {/* Top pill badge */}
-          <div className="relative z-10">
-            <span className="inline-block px-3.5 py-1 text-[11px] font-bold tracking-widest uppercase bg-white/20 backdrop-blur-md text-white rounded-full">
+          <div className="relative z-content">
+            <span className="inline-block px-3.5 py-1 text-meta font-bold tracking-widest uppercase bg-white/20 backdrop-blur-md text-white rounded-full">
               Online Learning Platform
             </span>
           </div>
 
           {/* Center: Floating Info Cards */}
-          <div className="relative z-10 space-y-3.5 my-8">
+          <div className="relative z-content space-y-3.5 my-8">
             {/* Card 1: Students */}
-            <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-3.5 shadow-card hover:bg-white/20 transition-all transform hover:-translate-y-0.5">
+            <div className="bg-white/15 backdrop-blur-md border border-surface/20 rounded-2xl p-4 flex items-center gap-3.5 shadow-card hover:bg-white/20 transition-all transform hover:-translate-y-0.5">
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                 <Users className="w-5 h-5 text-white" />
               </div>
@@ -93,7 +95,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             </div>
 
             {/* Card 2: Mentors */}
-            <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-3.5 shadow-card hover:bg-white/20 transition-all transform hover:-translate-y-0.5 translate-x-3">
+            <div className="bg-white/15 backdrop-blur-md border border-surface/20 rounded-2xl p-4 flex items-center gap-3.5 shadow-card hover:bg-white/20 transition-all transform hover:-translate-y-0.5 translate-x-3">
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                 <Award className="w-5 h-5 text-white" />
               </div>
@@ -108,7 +110,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             </div>
 
             {/* Card 3: Courses */}
-            <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-3.5 shadow-card hover:bg-white/20 transition-all transform hover:-translate-y-0.5">
+            <div className="bg-white/15 backdrop-blur-md border border-surface/20 rounded-2xl p-4 flex items-center gap-3.5 shadow-card hover:bg-white/20 transition-all transform hover:-translate-y-0.5">
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                 <BookOpen className="w-5 h-5 text-white" />
               </div>
@@ -124,7 +126,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
           </div>
 
           {/* Bottom Headline & Subtitle */}
-          <div className="relative z-10 space-y-2">
+          <div className="relative z-content space-y-2">
             <h2 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-white leading-tight drop-shadow-xs">
               Learn Anything, Anytime.
             </h2>

@@ -45,7 +45,7 @@ export const TextField: React.FC<TextFieldProps> = ({
           aria-invalid={!!error}
           aria-describedby={error ? errorId : helperText ? helperId : undefined}
           className={`
-            w-full py-3 text-sm text-slateText-primary placeholder-slateText-muted bg-brand-surface hover:bg-slate-100/80 focus:bg-white rounded-full border transition-all duration-200 min-h-[44px] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed
+            w-full py-3 text-sm text-slateText-primary placeholder-slateText-muted bg-brand-surface hover:bg-slate-100/80 focus:bg-surface rounded-full border transition-all duration-200 min-h-touch focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed
             ${leftIcon ? 'pl-11' : 'pl-5'}
             ${rightElement ? 'pr-12' : 'pr-5'}
             ${

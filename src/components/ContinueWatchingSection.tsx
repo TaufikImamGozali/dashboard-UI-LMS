@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight, Compass } from 'lucide-react';
 import type { Course } from '../types';
 import { CourseCard } from './CourseCard';
+import { EmptyState } from './ui/EmptyState';
 
 interface ContinueWatchingSectionProps {
   courses: Course[];
@@ -53,7 +54,7 @@ export const ContinueWatchingSection: React.FC<ContinueWatchingSectionProps> = (
           {/* Prev button */}
           <button
             onClick={() => scroll('left')}
-            className="w-8 h-8 rounded-full border border-[#E5E7EB] hover:border-brand-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slateText-secondary transition-all active:scale-95 shadow-2xs"
+            className="w-8 h-8 rounded-full border border-outline hover:border-brand-300 bg-surface hover:bg-slate-50 flex items-center justify-center text-slateText-secondary transition-all active:scale-95 shadow-2xs"
             aria-label="Previous courses"
           >
             <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
@@ -86,15 +87,14 @@ export const ContinueWatchingSection: React.FC<ContinueWatchingSectionProps> = (
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-3xl p-8 border border-[#EEF0F6] text-center space-y-2">
-          <Compass className="w-8 h-8 text-brand-400 mx-auto" />
-          <p className="text-sm font-semibold text-slateText-primary">
-            No courses found matching "{searchQuery}"
-          </p>
-          <p className="text-xs text-slateText-muted">
-            Try searching for "UI/UX", "Front End", or "Branding"
-          </p>
-        </div>
+        <EmptyState
+          title={`No courses found matching “${searchQuery}”`}
+          description='Try searching for “UI/UX”, “Front End”, or “Branding”.'
+          actionLabel="Browse all courses"
+          onAction={() => window.location.assign('/lesson')}
+          icon={<Compass className="h-7 w-7" />}
+          className="py-8"
+        />
       )}
     </div>
   );

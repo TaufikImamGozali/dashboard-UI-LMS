@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { LockKeyhole, Sparkles, X } from 'lucide-react';
 import type { CategoryType } from '../../types';
 import type { GroupPrivacy, NewGroupForm } from '../../types/group';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface CreateGroupModalProps {
   onClose: () => void;
@@ -18,30 +19,8 @@ const INITIAL_FORM: NewGroupForm = {
 export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onSubmit }) => {
   const [form, setForm] = useState(INITIAL_FORM);
   const [nameError, setNameError] = useState('');
-  const dialogRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    nameRef.current?.focus();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-      if (event.key !== 'Tab' || !dialogRef.current) return;
-      const focusable = Array.from(
-        dialogRef.current.querySelectorAll<HTMLElement>('button, input, textarea, select, [tabindex]:not([tabindex="-1"])'),
-      ).filter((element) => !element.hasAttribute('disabled'));
-      const first = focusable[0];
-      const last = focusable.at(-1);
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last?.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first?.focus();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  const dialogRef = useFocusTrap<HTMLDivElement>(true, onClose, nameRef);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -53,11 +32,11 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onS
     onSubmit(form);
   };
 
-  const fieldClass = 'w-full rounded-2xl border border-slate-200 bg-brand-surface px-4 py-3 text-sm text-slateText-primary outline-none placeholder:text-slateText-muted focus:border-brand-300 focus:bg-white focus:ring-4 focus:ring-brand-100';
+  const fieldClass = 'w-full rounded-2xl border border-slate-200 bg-brand-surface px-4 py-3 text-sm text-slateText-primary outline-none placeholder:text-slateText-muted focus:border-brand-300 focus:bg-surface focus:ring-4 focus:ring-brand-100';
 
   return (
-    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-slateText-primary/40 p-0 backdrop-blur-sm md:p-5" onMouseDown={onClose}>
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-group-title" className="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl md:h-auto md:max-h-[90vh] md:max-w-xl md:rounded-3xl" onMouseDown={(event) => event.stopPropagation()}>
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-slateText-primary/40 p-0 backdrop-blur-sm md:p-5" onMouseDown={onClose}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="create-group-title" className="flex h-full w-full flex-col overflow-hidden bg-surface shadow-2xl md:h-auto md:max-h-[90vh] md:max-w-xl md:rounded-3xl" onMouseDown={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-50 text-brand-500"><Sparkles className="h-5 w-5" /></span>

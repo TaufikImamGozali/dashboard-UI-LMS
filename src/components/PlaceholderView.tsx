@@ -13,7 +13,7 @@ export const PlaceholderView: React.FC<PlaceholderViewProps> = ({
   onBackToDashboard,
 }) => {
   return (
-    <div className="bg-white rounded-[28px] p-8 sm:p-12 border border-[#EEF0F6] shadow-xs flex flex-col items-center justify-center text-center my-6 space-y-4">
+    <div className="bg-surface rounded-shell p-8 sm:p-12 border border-outline-subtle shadow-xs flex flex-col items-center justify-center text-center my-6 space-y-4">
       <div className="w-16 h-16 rounded-2xl bg-brand-50 text-brand-500 flex items-center justify-center shadow-purple-glow">
         <Sparkles className="w-8 h-8 stroke-[2]" />
       </div>

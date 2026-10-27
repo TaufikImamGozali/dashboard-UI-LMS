@@ -9,6 +9,8 @@ import { MessageInput } from '../components/inbox/MessageInput';
 import { TypingIndicator } from '../components/inbox/TypingIndicator';
 import { useChat } from '../hooks/useChat';
 import type { Attachment } from '../types/message';
+import { useFocusTrap } from '../hooks/useFocusTrap';
+import { EmptyState } from '../components/ui/EmptyState';
 
 const dateKey = (timestamp: string) => new Date(timestamp).toDateString();
 
@@ -40,6 +42,8 @@ export const InboxPage: React.FC = () => {
     window.matchMedia('(min-width: 1280px)').matches,
   );
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const closeInfoDrawer = () => setInfoDrawerOpen(false);
+  const infoDrawerRef = useFocusTrap<HTMLDivElement>(infoDrawerOpen, closeInfoDrawer);
 
   const selectedConversation =
     conversations.find((conversation) => conversation.id === selectedConversationId) ?? null;
@@ -77,7 +81,7 @@ export const InboxPage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100dvh-11rem)] min-h-[520px] max-h-[800px] overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-card md:min-h-[640px]">
+    <div className="h-[calc(100dvh-11rem)] min-h-empty max-h-inbox overflow-hidden rounded-3xl border border-slate-100 bg-surface shadow-card md:min-h-chat">
       <div className="flex h-full min-w-0">
         <ConversationList
           conversations={conversations}
@@ -87,7 +91,7 @@ export const InboxPage: React.FC = () => {
           className={selectedConversationId ? 'hidden md:flex' : 'flex'}
         />
 
-        <section className={`${selectedConversationId ? 'flex' : 'hidden md:flex'} min-w-0 flex-1 flex-col border-l border-slate-100 bg-white`}>
+        <section className={`${selectedConversationId ? 'flex' : 'hidden md:flex'} min-w-0 flex-1 flex-col border-l border-slate-100 bg-surface`}>
           {selectedConversation ? (
             <>
               <ChatHeader
@@ -97,7 +101,7 @@ export const InboxPage: React.FC = () => {
                 onToggleInfo={handleToggleInfo}
               />
               <div
-                className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-white px-4 py-5 sm:px-6"
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-surface px-4 py-5 sm:px-6"
                 role="log"
                 aria-live="polite"
                 aria-label={`Messages with ${selectedConversation.contact.name}`}
@@ -120,15 +124,14 @@ export const InboxPage: React.FC = () => {
               <MessageInput onSend={handleSend} />
             </>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-              <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-brand-50 text-brand-500">
-                <MessageCircleMore className="h-7 w-7" />
-              </span>
-              <h2 className="text-lg font-extrabold text-slateText-primary">Select a conversation</h2>
-              <p className="mt-2 max-w-xs text-sm leading-relaxed text-slateText-muted">
-                Select a conversation to start chatting with your mentors and friends.
-              </p>
-            </div>
+            <EmptyState
+              title="Select a conversation"
+              description="Select a conversation to start chatting with your mentors and friends."
+              actionLabel={conversations.length ? 'Open first conversation' : undefined}
+              onAction={conversations.length ? () => handleSelect(conversations[0].id) : undefined}
+              icon={<MessageCircleMore className="h-7 w-7" />}
+              className="h-full rounded-none border-0 shadow-none"
+            />
           )}
         </section>
 
@@ -142,8 +145,8 @@ export const InboxPage: React.FC = () => {
       </div>
 
       {selectedConversation && infoDrawerOpen && (
-        <div className="fixed inset-0 z-[70] flex justify-end bg-slateText-primary/35 backdrop-blur-xs xl:hidden" onClick={() => setInfoDrawerOpen(false)}>
-          <div className="h-full max-w-[88vw] shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="fixed inset-0 z-drawer flex justify-end bg-slateText-primary/35 backdrop-blur-xs xl:hidden" onClick={() => setInfoDrawerOpen(false)}>
+          <div ref={infoDrawerRef} role="dialog" aria-modal="true" aria-label="Contact information" className="h-full max-w-[88vw] shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <ContactInfoPanel contact={selectedConversation.contact} onClose={() => setInfoDrawerOpen(false)} className="h-full" />
           </div>
         </div>

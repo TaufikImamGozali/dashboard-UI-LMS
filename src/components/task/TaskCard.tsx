@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CalendarDays, MoreVertical, Flag, CheckSquare } from 'lucide-react';
 import type { Task, Priority } from '../../types/task';
-import { CategoryBadge } from '../CategoryBadge';
+import { TagBadge } from '../ui/TagBadge';
 
 const priorityConfig: Record<Priority, { label: string; classes: string }> = {
   Low: { label: 'Low', classes: 'bg-emerald-50 text-emerald-600' },
@@ -59,10 +59,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, isOverdue, onOpen, onE
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white rounded-[20px] p-4 border shadow-xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group select-none ${
-        isDragging ? 'shadow-purple-glow border-brand-300' : 'border-[#EEF0F6] hover:border-[#DFE2EC]'
+      className={`bg-surface rounded-card p-4 border shadow-xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group select-none ${
+        isDragging ? 'shadow-purple-glow border-brand-300' : 'border-outline-subtle hover:border-outline-strong'
       }`}
       onClick={() => onOpen(task)}
+      onKeyDown={(event) => {
+        if (event.currentTarget !== event.target) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpen(task);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open task: ${task.title}`}
     >
       {/* Drag handle + menu */}
       <div className="flex items-start justify-between mb-2.5">
@@ -98,7 +108,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, isOverdue, onOpen, onE
             <MoreVertical className="w-4 h-4" />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-8 w-32 bg-white rounded-2xl border border-slate-100 shadow-card z-50 overflow-hidden py-1">
+            <div className="absolute right-0 top-8 w-32 bg-surface rounded-2xl border border-slate-100 shadow-card z-popover overflow-hidden py-1">
               <button
                 type="button"
                 className="w-full text-left px-4 py-2 text-xs font-semibold text-slateText-primary hover:bg-brand-50 hover:text-brand-600 transition-colors"
@@ -120,7 +130,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, isOverdue, onOpen, onE
 
       {/* Category badge */}
       <div className="mb-2">
-        <CategoryBadge category={task.courseCategory} label={task.courseLabel} />
+        <TagBadge category={task.courseCategory} label={task.courseLabel} />
       </div>
 
       {/* Title */}
@@ -131,7 +141,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, isOverdue, onOpen, onE
       {/* Subtask progress */}
       {pct !== null && (
         <div className="mb-2.5 space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-slateText-muted font-semibold">
+          <div className="flex items-center justify-between text-meta text-slateText-muted font-semibold">
             <span className="flex items-center gap-1">
               <CheckSquare className="w-3 h-3" />
               {task.subtasks.filter((s) => s.isCompleted).length}/{task.subtasks.length}
@@ -149,7 +159,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, isOverdue, onOpen, onE
 
       {/* Footer: deadline + priority + mentor */}
       <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100">
-        <div className={`flex items-center gap-1 text-[11px] font-semibold ${isOverdue ? 'text-red-500' : 'text-slateText-muted'}`}>
+        <div className={`flex items-center gap-1 text-meta font-semibold ${isOverdue ? 'text-red-500' : 'text-slateText-muted'}`}>
           <CalendarDays className="w-3.5 h-3.5" />
           <span>
             {isOverdue ? 'Overdue · ' : ''}
@@ -158,12 +168,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, isOverdue, onOpen, onE
         </div>
 
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${pConfig.classes}`}>
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-micro font-bold ${pConfig.classes}`}>
             <Flag className="w-2.5 h-2.5" />
             {pConfig.label}
           </span>
           {task.mentorAvatar && (
-            <img
+            <img height="160" width="160" loading="lazy"
               src={task.mentorAvatar}
               alt={task.mentorName}
               title={task.mentorName}

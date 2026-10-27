@@ -3,8 +3,8 @@ import { Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CreateGroupModal } from '../components/group/CreateGroupModal';
 import { GroupGrid } from '../components/group/GroupGrid';
-import { GroupTabs } from '../components/group/GroupTabs';
-import { ToastContainer } from '../components/task/Toast';
+import { Tabs } from '../components/ui/Tabs';
+import { ToastContainer } from '../components/ui/Toast';
 import { useGroups } from '../hooks/useGroups';
 import { useToast } from '../hooks/useToast';
 import type { CategoryType } from '../types';
@@ -83,8 +83,8 @@ export const GroupPage: React.FC = () => {
         <button type="button" onClick={() => setCreateModalOpen(true)} className="hidden shrink-0 items-center gap-2 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-purple-glow hover:bg-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 md:flex"><Plus className="h-4 w-4" /> Create Group</button>
       </header>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-4 shadow-card sm:p-5">
-        <GroupTabs
+      <section className="rounded-3xl border border-slate-100 bg-surface p-4 shadow-card sm:p-5">
+        <Tabs
           ariaLabel="Group collection"
           tabs={[{ id: 'my-groups', label: 'My Groups', count: joinedCount }, { id: 'discover', label: 'Discover', count: discoverCount }]}
           activeTab={tab}
@@ -101,7 +101,7 @@ export const GroupPage: React.FC = () => {
             <label className="relative shrink-0">
               <span className="sr-only">Sort groups</span>
               <SlidersHorizontal className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slateText-muted" />
-              <select value={sort} onChange={(event) => updateParam('sort', event.target.value, 'active')} className="w-full appearance-none rounded-full border border-slate-200 bg-white py-3 pl-10 pr-9 text-xs font-bold text-slateText-secondary outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 lg:w-auto">
+              <select value={sort} onChange={(event) => updateParam('sort', event.target.value, 'active')} className="w-full appearance-none rounded-full border border-slate-200 bg-surface py-3 pl-10 pr-9 text-xs font-bold text-slateText-secondary outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 lg:w-auto">
                 <option value="active">Most Active</option><option value="newest">Newest</option><option value="members">Most Members</option>
               </select>
             </label>
@@ -118,7 +118,7 @@ export const GroupPage: React.FC = () => {
         <GroupGrid groups={visibleGroups} isMyGroups={tab === 'my-groups'} hasSearchOrFilter={Boolean(query.trim()) || category !== 'all'} onOpen={(id) => navigate(`/group/${id}`)} onJoin={handleJoin} onDiscover={() => updateParam('tab', 'discover', 'my-groups')} />
       </div>
 
-      <button type="button" onClick={() => setCreateModalOpen(true)} aria-label="Create group" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-purple-glow hover:bg-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 md:hidden"><Plus className="h-6 w-6" /></button>
+      <button type="button" onClick={() => setCreateModalOpen(true)} aria-label="Create group" className="fixed bottom-6 right-6 z-sticky flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-purple-glow hover:bg-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 md:hidden"><Plus className="h-6 w-6" /></button>
       {createModalOpen && <CreateGroupModal onClose={() => setCreateModalOpen(false)} onSubmit={handleCreate} />}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
