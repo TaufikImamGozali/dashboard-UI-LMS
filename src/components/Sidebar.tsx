@@ -28,7 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   onLogout,
 }) => {
-  const isInbox = currentPath === '/inbox';
+  const isInbox = currentPath === '/inbox' || currentPath.startsWith('/group');
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { id: 'inbox', label: 'Inbox', icon: Mail, path: '/inbox', badge: 3 },
@@ -77,7 +77,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </p>
           <nav className="space-y-1" aria-label="Overview Navigation">
             {navItems.map((item) => {
-              const isActive = currentPath === item.path;
+              const isActive =
+                currentPath === item.path ||
+                (item.path !== '/' && currentPath.startsWith(`${item.path}/`));
               const Icon = item.icon;
               return (
                 <button

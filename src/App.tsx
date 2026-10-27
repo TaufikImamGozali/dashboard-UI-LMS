@@ -17,6 +17,8 @@ import { CourseDetailPage } from './pages/CourseDetailPage';
 import { LessonPage } from './pages/LessonPage';
 import { TaskPage } from './pages/TaskPage';
 import { InboxPage } from './pages/InboxPage';
+import { GroupPage } from './pages/GroupPage';
+import { GroupDetailPage } from './pages/GroupDetailPage';
 import {
   mockFriends,
   mockProgressSummaries,
@@ -178,14 +180,9 @@ function DashboardLayout() {
               />
               <Route
                 path="/group"
-                element={
-                  <PlaceholderView
-                    title="Study Groups & Community"
-                    description="Collaborate with peers, participate in hackathons, and share design feedback."
-                    onBackToDashboard={() => navigate('/')}
-                  />
-                }
+                element={<GroupPage />}
               />
+              <Route path="/group/:id" element={<GroupDetailPage />} />
               <Route
                 path="/settings"
                 element={
