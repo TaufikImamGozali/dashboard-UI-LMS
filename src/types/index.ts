@@ -1,4 +1,8 @@
 export type CategoryType = 'frontend' | 'design' | 'branding';
+export type CourseLevel = 'All' | 'Beginner' | 'Intermediate' | 'Advanced';
+export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started';
+export type SortOption = 'newest' | 'popular' | 'rating' | 'progress';
+export type ViewMode = 'grid' | 'list';
 
 export interface Friend {
   id: string;
@@ -30,6 +34,13 @@ export interface Course {
     role: string;
   };
   isFavorite: boolean;
+  level?: CourseLevel;
+  rating?: number;
+  reviewsCount?: number;
+  studentsCount?: string | number;
+  totalDuration?: string;
+  status?: 'in-progress' | 'completed' | 'not-started';
+  releaseDate?: string;
 }
 
 export interface Lesson {
@@ -114,4 +125,6 @@ export interface CourseDetail {
   sections: CourseSection[];
   reviews: CourseReview[];
   isFavorite: boolean;
+  status?: 'in-progress' | 'completed' | 'not-started';
+  releaseDate?: string;
 }

@@ -14,6 +14,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { CourseDetailPage } from './pages/CourseDetailPage';
+import { LessonPage } from './pages/LessonPage';
 import {
   mockFriends,
   mockProgressSummaries,
@@ -173,13 +174,7 @@ function DashboardLayout() {
               />
               <Route
                 path="/lesson"
-                element={
-                  <PlaceholderView
-                    title="All Lessons Catalog"
-                    description="Access all video modules, downloadable worksheets, interactive quizzes, and Figma source files."
-                    onBackToDashboard={() => navigate('/')}
-                  />
-                }
+                element={<LessonPage />}
               />
               <Route
                 path="/task"

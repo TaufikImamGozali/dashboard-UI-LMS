@@ -1,0 +1,154 @@
+import React from 'react';
+import { Heart, Clock, Star, ArrowRight } from 'lucide-react';
+import type { Course } from '../../types';
+import { CategoryBadge } from '../CategoryBadge';
+
+interface CourseListItemProps {
+  course: Course;
+  onToggleFavorite: (id: string) => void;
+  onClick: (course: Course) => void;
+}
+
+export const CourseListItem: React.FC<CourseListItemProps> = ({
+  course,
+  onToggleFavorite,
+  onClick,
+}) => {
+  const getProgressBarColor = () => {
+    switch (course.category) {
+      case 'frontend':
+        return 'bg-category-frontend-icon';
+      case 'design':
+        return 'bg-category-design-icon';
+      case 'branding':
+        return 'bg-category-branding-icon';
+      default:
+        return 'bg-brand-500';
+    }
+  };
+
+  return (
+    <div
+      onClick={() => onClick(course)}
+      className="bg-white rounded-[22px] p-4 border border-[#EEF0F6] hover:border-[#DFE2EC] shadow-xs hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 group cursor-pointer"
+    >
+      {/* Left: Thumbnail & Main Info */}
+      <div className="flex items-start sm:items-center gap-4 min-w-0 flex-1">
+        {/* Thumbnail with Heart Icon */}
+        <div className="relative w-28 sm:w-36 h-20 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 shrink-0">
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+
+          {/* Favorite heart button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(course.id);
+            }}
+            className={`absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-md flex items-center justify-center transition-transform active:scale-90 ${
+              course.isFavorite
+                ? 'bg-white text-rose-500 shadow-sm'
+                : 'bg-black/30 text-white hover:bg-white hover:text-rose-500'
+            }`}
+            aria-label={course.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Heart
+              className={`w-3.5 h-3.5 ${
+                course.isFavorite ? 'fill-rose-500 text-rose-500' : 'text-white'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Text Details */}
+        <div className="space-y-1.5 min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <CategoryBadge
+              category={course.category}
+              label={course.categoryLabel}
+              className="scale-90 origin-left"
+            />
+            {course.level && (
+              <span className="text-[11px] font-semibold text-slateText-muted bg-slate-100 px-2 py-0.5 rounded-full">
+                {course.level}
+              </span>
+            )}
+          </div>
+
+          <h2 className="text-sm sm:text-base font-bold text-slateText-primary group-hover:text-brand-500 transition-colors line-clamp-1">
+            {course.title}
+          </h2>
+
+          {/* Mentor & Rating Row */}
+          <div className="flex items-center gap-3 text-xs text-slateText-muted flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <img
+                src={course.mentor.avatar}
+                alt={course.mentor.name}
+                className="w-5 h-5 rounded-full object-cover ring-1 ring-slate-200"
+              />
+              <span className="font-medium text-slateText-secondary truncate">
+                {course.mentor.name}
+              </span>
+            </div>
+
+            {course.rating && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-1 font-semibold text-slateText-primary">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{course.rating.toFixed(1)}</span>
+                </span>
+              </>
+            )}
+
+            {course.totalDuration && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-slateText-muted" />
+                  <span>{course.totalDuration}</span>
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Progress Bar & Continue CTA */}
+      <div className="flex items-center justify-between md:justify-end gap-5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+        {/* Progress Info */}
+        <div className="w-32 sm:w-40 space-y-1.5">
+          <div className="flex items-center justify-between text-xs font-semibold text-slateText-secondary">
+            <span>Progress</span>
+            <span className="text-slateText-primary font-bold">{course.progress}%</span>
+          </div>
+          <div className="w-full bg-[#F0F2F7] rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${getProgressBarColor()}`}
+              style={{ width: `${course.progress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick(course);
+          }}
+          className="inline-flex items-center gap-2 pl-4 pr-3 py-2 bg-brand-50 hover:bg-brand-500 text-brand-600 hover:text-white text-xs font-bold rounded-full transition-all duration-200 group-hover:bg-brand-500 group-hover:text-white shadow-2xs shrink-0"
+        >
+          <span>Continue</span>
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    </div>
+  );
+};
