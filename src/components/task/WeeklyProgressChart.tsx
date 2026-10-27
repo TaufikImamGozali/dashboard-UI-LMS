@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import type { Task } from '../../types/task';
@@ -10,8 +10,8 @@ interface WeeklyProgressChartProps {
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ tasks }) => {
+  const [today] = useState(() => new Date());
   const data = useMemo(() => {
-    const today = new Date();
     const dayOfWeek = today.getDay(); // 0=Sun
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - dayOfWeek);
@@ -26,7 +26,7 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ tasks 
       ).length;
       return { label, count, isToday: idx === dayOfWeek };
     });
-  }, [tasks]);
+  }, [tasks, today]);
 
   const maxCount = Math.max(...data.map((d) => d.count), 3);
 
@@ -62,8 +62,9 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ tasks 
                 fontWeight: 700,
                 boxShadow: '0 4px 16px -2px rgba(24,23,42,0.08)',
               }}
-              formatter={(v: number | string | undefined) => {
-                const n = Number(v) || 0;
+              formatter={(value) => {
+                const rawValue = Array.isArray(value) ? value[0] : value;
+                const n = Number(rawValue) || 0;
                 return [`${n} task${n !== 1 ? 's' : ''}`, 'Done'] as [string, string];
               }}
             />

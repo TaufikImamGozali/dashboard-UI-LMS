@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Columns3, AlignLeft } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { Task, NewTaskForm, TaskViewMode, TaskStatus } from '../types/task';
 import { useTasks } from '../hooks/useTasks';
 import { useToast } from '../hooks/useToast';
@@ -216,12 +216,14 @@ export const TaskPage: React.FC = () => {
       </div>
 
       {/* ── Modals / Drawers / Overlays ───────────────────────────────────── */}
-      <TaskFormModal
-        isOpen={isFormOpen}
-        editTask={editingTask}
-        onClose={() => { setIsFormOpen(false); setEditingTask(null); }}
-        onSubmit={handleFormSubmit}
-      />
+      {isFormOpen && (
+        <TaskFormModal
+          isOpen
+          editTask={editingTask}
+          onClose={() => { setIsFormOpen(false); setEditingTask(null); }}
+          onSubmit={handleFormSubmit}
+        />
+      )}
 
       <TaskDrawer
         task={drawerTask}

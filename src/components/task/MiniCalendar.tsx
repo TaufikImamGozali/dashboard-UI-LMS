@@ -15,8 +15,10 @@ const MONTHS = [
 ];
 
 export const MiniCalendar: React.FC<MiniCalendarProps> = ({ tasks, selectedDate, onSelectDate }) => {
-  const today = new Date();
-  const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [today] = useState(() => new Date());
+  const [current, setCurrent] = useState(
+    () => new Date(today.getFullYear(), today.getMonth(), 1)
+  );
 
   const year = current.getFullYear();
   const month = current.getMonth();

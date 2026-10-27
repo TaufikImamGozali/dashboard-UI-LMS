@@ -21,6 +21,18 @@ const INITIAL_FORM: NewTaskForm = {
   status: 'todo',
 };
 
+const getInitialForm = (editTask?: Task | null): NewTaskForm =>
+  editTask
+    ? {
+        title: editTask.title,
+        description: editTask.description,
+        courseId: editTask.courseId,
+        deadline: editTask.deadline,
+        priority: editTask.priority,
+        status: editTask.status,
+      }
+    : INITIAL_FORM;
+
 interface TaskFormModalProps {
   isOpen: boolean;
   editTask?: Task | null;
@@ -34,27 +46,15 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [form, setForm] = useState<NewTaskForm>(INITIAL_FORM);
+  const [form, setForm] = useState<NewTaskForm>(() => getInitialForm(editTask));
   const [errors, setErrors] = useState<Partial<Record<keyof NewTaskForm, string>>>({});
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    if (editTask) {
-      setForm({
-        title: editTask.title,
-        description: editTask.description,
-        courseId: editTask.courseId,
-        deadline: editTask.deadline,
-        priority: editTask.priority,
-        status: editTask.status,
-      });
-    } else {
-      setForm(INITIAL_FORM);
-    }
-    setErrors({});
-    setTimeout(() => firstInputRef.current?.focus(), 80);
-  }, [isOpen, editTask]);
+    const focusTimer = window.setTimeout(() => firstInputRef.current?.focus(), 80);
+    return () => window.clearTimeout(focusTimer);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;

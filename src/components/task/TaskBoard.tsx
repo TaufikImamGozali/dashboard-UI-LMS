@@ -13,7 +13,8 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { Task, TaskStatus } from '../../types/task';
-import { TaskColumn, COLUMNS } from './TaskColumn';
+import { TaskColumn } from './TaskColumn';
+import { COLUMNS } from './taskColumns';
 import { TaskCard } from './TaskCard';
 
 interface TaskBoardProps {
