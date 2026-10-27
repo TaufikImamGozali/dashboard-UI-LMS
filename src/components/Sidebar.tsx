@@ -8,9 +8,11 @@ import {
   Settings,
   LogOut,
   X,
+  Shield,
 } from 'lucide-react';
 import type { Friend } from '../types';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useAuth } from '../hooks/useAuth';
 
 interface SidebarProps {
   currentPath: string;
@@ -32,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   unreadMessages = 0,
 }) => {
   const mobilePanelRef = useFocusTrap<HTMLDivElement>(isOpenMobile, () => onCloseMobile?.());
+  const { isAdmin } = useAuth();
   const isInbox = currentPath === '/inbox' || currentPath.startsWith('/group');
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
@@ -118,6 +121,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </nav>
         </div>
+
+        {/* ADMINISTRATION Section (Visible for Admin) */}
+        {(isAdmin || currentPath.startsWith('/admin')) && (
+          <div className="mb-6">
+            <p className={`text-meta font-bold tracking-wider text-purple-600 dark:text-purple-400 uppercase px-3 mb-2 flex items-center gap-1.5 ${isInbox ? 'md:max-xl:hidden' : ''}`}>
+              <Shield className="w-3.5 h-3.5" />
+              Admin
+            </p>
+            <nav className="space-y-1" aria-label="Admin Navigation">
+              <button
+                data-navigation
+                type="button"
+                onClick={() => {
+                  onNavigate('/admin');
+                  if (onCloseMobile) onCloseMobile();
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 group text-left ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''} ${
+                  currentPath.startsWith('/admin')
+                    ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold shadow-xs'
+                    : 'text-slateText-secondary hover:bg-purple-50 hover:text-purple-700'
+                }`}
+                aria-current={currentPath.startsWith('/admin') ? 'page' : undefined}
+              >
+                <div className={`flex items-center gap-3 ${isInbox ? 'md:max-xl:justify-center' : ''}`}>
+                  <Shield
+                    className={`w-4.5 h-4.5 transition-transform duration-200 group-hover:scale-110 ${
+                      currentPath.startsWith('/admin') ? 'text-purple-600 stroke-[2.2]' : 'text-slateText-muted group-hover:text-purple-600 stroke-[1.8]'
+                    }`}
+                  />
+                  <span className={isInbox ? 'md:max-xl:hidden' : ''}>Admin Panel</span>
+                </div>
+                <span className={`text-meta font-extrabold px-1.5 py-0.5 rounded-md bg-purple-200 text-purple-800 ${isInbox ? 'md:max-xl:hidden' : ''}`}>
+                  PRO
+                </span>
+              </button>
+            </nav>
+          </div>
+        )}
 
         {/* FRIENDS Section */}
         <div className={`mb-6 ${isInbox ? 'md:max-xl:hidden' : ''}`}>

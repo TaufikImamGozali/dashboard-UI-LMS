@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { AlertCircle, CheckCircle2, Trash2, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, Trash2, X } from 'lucide-react';
 
-export type ToastType = 'success' | 'error' | 'delete';
+export type ToastType = 'success' | 'error' | 'delete' | 'info';
 
 export interface ToastMessage {
   id: string;
@@ -18,12 +18,14 @@ const icons: Record<ToastType, React.ReactNode> = {
   success: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
   error: <AlertCircle className="h-4 w-4 text-rose-500" />,
   delete: <Trash2 className="h-4 w-4 text-rose-500" />,
+  info: <Info className="h-4 w-4 text-brand-500" />,
 };
 
 const tones: Record<ToastType, string> = {
   success: 'border-emerald-200 bg-emerald-50',
   error: 'border-rose-200 bg-rose-50',
   delete: 'border-rose-200 bg-rose-50',
+  info: 'border-brand-200 bg-brand-50',
 };
 
 export const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {

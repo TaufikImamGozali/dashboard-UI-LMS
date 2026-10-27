@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AdminRoute } from './components/auth/AdminRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { RouteSkeleton } from './components/ui/RouteSkeleton';
 import { ConfirmDialog } from './components/ui/ConfirmDialog';
@@ -28,6 +29,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) =
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
 const HelpPage = lazy(() => import('./pages/HelpPage').then((module) => ({ default: module.HelpPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then((module) => ({ default: module.AdminPage })));
 
 function DashboardLayout() {
   const navigate = useNavigate();
@@ -102,6 +104,14 @@ function DashboardLayout() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/help" element={<HelpPage />} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminPage />
+                  </AdminRoute>
+                }
+              />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
