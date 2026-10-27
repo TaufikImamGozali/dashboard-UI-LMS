@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail } from 'lucide-react';
+import { User, Mail, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { TextField } from '../components/ui/TextField';
@@ -9,7 +9,6 @@ import { useAuth } from '../hooks/useAuth';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -63,18 +62,32 @@ export const RegisterPage: React.FC = () => {
     return isValid;
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const [authError, setAuthError] = useState('');
+  const { signUp } = useAuth();
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) return;
 
     setIsLoading(true);
+    setAuthError('');
 
-    setTimeout(() => {
-      login();
+    try {
+      const res = await signUp(fullName, email, password);
       setIsLoading(false);
+
+      if (!res.success) {
+        setAuthError(res.error || 'Pendaftaran gagal. Periksa kembali informasi Anda.');
+        return;
+      }
+
+      sessionStorage.setItem('coursue_flash', 'Akun berhasil dibuat! Selamat datang di Coursue.');
       navigate('/', { replace: true });
-    }, 1000);
+    } catch {
+      setIsLoading(false);
+      setAuthError('Gagal menghubungkan ke server pendaftaran.');
+    }
   };
 
   return (
@@ -89,6 +102,17 @@ export const RegisterPage: React.FC = () => {
             Join thousands of learners sharpening their skills today
           </p>
         </div>
+
+        {/* Real-time Auth Error Banner */}
+        {authError && (
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-scale-in">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Gagal Mendaftar</p>
+              <p className="text-rose-600 mt-0.5">{authError}</p>
+            </div>
+          </div>
+        )}
 
         {/* Register Form */}
         <form onSubmit={handleRegister} className="space-y-4" noValidate>

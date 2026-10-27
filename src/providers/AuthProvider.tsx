@@ -13,6 +13,24 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setRoleState(userRole);
   }, []);
 
+  const signIn = useCallback(async (email: string, password: string, remember = false) => {
+    const res = await authService.signIn(email, password, remember);
+    if (res.success && res.role) {
+      setAuthenticated(true);
+      setRoleState(res.role);
+    }
+    return res;
+  }, []);
+
+  const signUp = useCallback(async (name: string, email: string, password: string) => {
+    const res = await authService.signUp(name, email, password);
+    if (res.success) {
+      setAuthenticated(true);
+      setRoleState('student');
+    }
+    return res;
+  }, []);
+
   const logout = useCallback(() => {
     authService.logout();
     setAuthenticated(false);
@@ -27,8 +45,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const isAdmin = role === 'admin';
 
   const value = useMemo(
-    () => ({ isAuthenticated, role, isAdmin, login, logout, switchRole }),
-    [isAuthenticated, role, isAdmin, login, logout, switchRole]
+    () => ({ isAuthenticated, role, isAdmin, login, signIn, signUp, logout, switchRole }),
+    [isAuthenticated, role, isAdmin, login, signIn, signUp, logout, switchRole]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

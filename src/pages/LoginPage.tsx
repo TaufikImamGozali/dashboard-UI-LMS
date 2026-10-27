@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, Shield, User, Sparkles } from 'lucide-react';
+import { Mail, Shield, User, Sparkles, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { TextField } from '../components/ui/TextField';
@@ -11,7 +11,7 @@ import { ToastContainer } from '../components/ui/Toast';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signIn, login } = useAuth();
   const { toasts, showToast, dismissToast } = useToast();
 
   useEffect(() => {
@@ -29,20 +29,22 @@ export const LoginPage: React.FC = () => {
 
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [authError, setAuthError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Quick preset helper
   const handleSelectPreset = (role: 'student' | 'admin') => {
     setSelectedRole(role);
     if (role === 'admin') {
-      setEmail('admin@coursue.test');
+      setEmail('admin@coursue.com');
       setPassword('password123');
     } else {
-      setEmail('jason.ranti@coursue.test');
+      setEmail('user@coursue.com');
       setPassword('password123');
     }
     setEmailError('');
     setPasswordError('');
+    setAuthError('');
   };
 
   const validate = (): boolean => {
@@ -74,7 +76,7 @@ export const LoginPage: React.FC = () => {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -82,23 +84,33 @@ export const LoginPage: React.FC = () => {
     }
 
     setIsLoading(true);
+    setAuthError('');
 
-    const isAdminLogin =
-      selectedRole === 'admin' ||
-      email.toLowerCase().includes('admin@') ||
-      email.toLowerCase() === 'admin@coursue.test';
-
-    setTimeout(() => {
-      login(rememberMe, isAdminLogin ? 'admin' : 'student');
+    try {
+      const res = await signIn(email, password, rememberMe);
       setIsLoading(false);
 
-      if (isAdminLogin) {
+      if (!res.success) {
+        const errorMsg =
+          res.error === 'Invalid login credentials'
+            ? 'Email atau kata sandi salah. Silakan periksa kembali akun Anda.'
+            : res.error || 'Login gagal. Periksa kembali email dan kata sandi Anda.';
+        setAuthError(errorMsg);
+        showToast(errorMsg, 'error');
+        return;
+      }
+
+      if (res.role === 'admin') {
         showToast('Logged in as Platform Administrator', 'success');
         navigate('/admin', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
-    }, 800);
+    } catch {
+      setIsLoading(false);
+      setAuthError('Gagal menghubungkan ke server autentikasi.');
+      showToast('Gagal menghubungkan ke server', 'error');
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -124,6 +136,17 @@ export const LoginPage: React.FC = () => {
             </p>
           </div>
 
+          {/* Real-time Auth Error Banner */}
+          {authError && (
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-scale-in">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Gagal Masuk</p>
+                <p className="text-rose-600 mt-0.5">{authError}</p>
+              </div>
+            </div>
+          )}
+
           {/* Quick Demo Role Selector */}
           <div className="p-3.5 rounded-2xl bg-surface border border-outline shadow-xs space-y-2">
             <div className="flex items-center justify-between">
@@ -140,7 +163,7 @@ export const LoginPage: React.FC = () => {
                 type="button"
                 onClick={() => handleSelectPreset('student')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
-                  selectedRole === 'student' && email === 'jason.ranti@coursue.test'
+                  selectedRole === 'student' && email === 'user@coursue.com'
                     ? 'bg-brand-500 text-white shadow-purple-glow'
                     : 'bg-surface-muted hover:bg-slate-200/60 text-content-secondary'
                 }`}
@@ -152,7 +175,7 @@ export const LoginPage: React.FC = () => {
                 type="button"
                 onClick={() => handleSelectPreset('admin')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
-                  selectedRole === 'admin' || email === 'admin@coursue.test'
+                  selectedRole === 'admin' && email === 'admin@coursue.com'
                     ? 'bg-purple-600 text-white shadow-purple-glow'
                     : 'bg-surface-muted hover:bg-purple-100/60 text-purple-700'
                 }`}
@@ -171,11 +194,12 @@ export const LoginPage: React.FC = () => {
               name="email"
               type="email"
               label="Email Address"
-              placeholder="e.g. jason.ranti@coursue.test or admin@coursue.test"
+              placeholder="e.g. user@coursue.com or admin@coursue.com"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
                 if (emailError) setEmailError('');
+                if (authError) setAuthError('');
                 if (e.target.value.toLowerCase().includes('admin@')) {
                   setSelectedRole('admin');
                 }
@@ -196,6 +220,7 @@ export const LoginPage: React.FC = () => {
               onChange={(e) => {
                 setPassword(e.target.value);
                 if (passwordError) setPasswordError('');
+                if (authError) setAuthError('');
               }}
               error={passwordError}
               required
