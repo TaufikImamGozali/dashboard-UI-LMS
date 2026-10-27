@@ -1,0 +1,153 @@
+import React from 'react';
+import { MoreVertical } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Cell,
+  Tooltip,
+} from 'recharts';
+import type { StatisticDataPoint } from '../types';
+import { currentUser } from '../data/mockData';
+
+interface StatisticCardProps {
+  data: StatisticDataPoint[];
+}
+
+export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
+  // SVG circular progress calculation
+  const radius = 56;
+  const stroke = 3;
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset =
+    circumference - (currentUser.completionPercentage / 100) * circumference;
+
+  return (
+    <div className="bg-white rounded-[26px] p-6 border border-[#EEF0F6] shadow-xs">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-base font-bold text-slateText-primary tracking-tight">
+          Statistic
+        </h2>
+        <button
+          className="w-8 h-8 rounded-full flex items-center justify-center text-slateText-muted hover:text-slateText-primary hover:bg-[#F5F6FA] transition-colors"
+          aria-label="Statistic options"
+        >
+          <MoreVertical className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Circular Avatar Progress Section */}
+      <div className="flex flex-col items-center">
+        <div className="relative w-32 h-32 flex items-center justify-center">
+          {/* Circular SVG Ring */}
+          <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg]">
+            {/* Background track circle */}
+            <circle
+              stroke="#EDE9FE"
+              fill="transparent"
+              strokeWidth={stroke}
+              r={normalizedRadius}
+              cx={radius}
+              cy={radius}
+            />
+            {/* Animated progress ring */}
+            <circle
+              stroke="#6C5CE7"
+              fill="transparent"
+              strokeWidth={stroke}
+              strokeDasharray={`${circumference} ${circumference}`}
+              style={{ strokeDashoffset }}
+              strokeLinecap="round"
+              r={normalizedRadius}
+              cx={radius}
+              cy={radius}
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+
+          {/* Inner Avatar */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.name}
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-[#FAF8FF] shadow-xs"
+            />
+          </div>
+
+          {/* 32% Badge at ~2 o'clock */}
+          <div className="absolute top-1 right-2 bg-brand-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-purple-glow">
+            {currentUser.completionPercentage}%
+          </div>
+        </div>
+
+        {/* Greeting & Subtext */}
+        <div className="text-center mt-3">
+          <h3 className="text-base font-extrabold text-slateText-primary flex items-center justify-center gap-1.5">
+            <span>Good Morning Jason</span>
+            <span role="img" aria-label="fire">🔥</span>
+          </h3>
+          <p className="text-xs text-slateText-muted mt-1 max-w-[210px] mx-auto leading-relaxed">
+            Continue your learning to achieve your target!
+          </p>
+        </div>
+      </div>
+
+      {/* Bar Chart Section */}
+      <div className="mt-6 pt-2 h-44 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={data}
+            margin={{ top: 10, right: 10, left: -24, bottom: 0 }}
+            barCategoryGap={20}
+          >
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              ticks={[0, 20, 40, 60]}
+              domain={[0, 60]}
+              tick={{ fill: '#A0A3BD', fontSize: 11, fontWeight: 500 }}
+            />
+            <XAxis
+              dataKey="range"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#A0A3BD', fontSize: 11, fontWeight: 500 }}
+              dy={6}
+            />
+            <Tooltip
+              cursor={{ fill: 'transparent' }}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-[#1E1B39] text-white text-xs py-1.5 px-3 rounded-xl shadow-lg">
+                      <p className="font-semibold">{payload[0].payload.range}</p>
+                      <p className="text-brand-300 font-bold">{payload[0].value} hrs spent</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Bar
+              dataKey="hours"
+              radius={[8, 8, 4, 4]}
+              barSize={28}
+            >
+              {data.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.highlighted ? '#6C5CE7' : '#DCD6FD'}
+                  className="transition-all duration-300 hover:opacity-90"
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};

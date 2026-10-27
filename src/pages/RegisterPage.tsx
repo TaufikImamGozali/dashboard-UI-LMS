@@ -1,0 +1,199 @@
+import React, { useState } from 'react';
+import { User, Mail } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { AuthLayout } from '../components/auth/AuthLayout';
+import { TextField } from '../components/ui/TextField';
+import { PasswordField } from '../components/ui/PasswordField';
+import { Button } from '../components/ui/Button';
+
+export const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
+
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [termsError, setTermsError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validate = (): boolean => {
+    let isValid = true;
+
+    if (!fullName.trim()) {
+      setNameError('Full name is required');
+      isValid = false;
+    } else {
+      setNameError('');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      setEmailError('Email address is required');
+      isValid = false;
+    } else if (!emailRegex.test(email.trim())) {
+      setEmailError('Please enter a valid email address');
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    if (!agreeTerms) {
+      setTermsError('You must agree to the Terms of Service');
+      isValid = false;
+    } else {
+      setTermsError('');
+    }
+
+    return isValid;
+  };
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    setIsLoading(true);
+
+    setTimeout(() => {
+      localStorage.setItem('coursue_auth', 'true');
+      setIsLoading(false);
+      navigate('/', { replace: true });
+    }, 1000);
+  };
+
+  return (
+    <AuthLayout>
+      <div className="space-y-6">
+        {/* Heading */}
+        <div className="space-y-1.5 text-left">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slateText-primary tracking-tight">
+            Create an Account 🚀
+          </h1>
+          <p className="text-sm text-slateText-secondary">
+            Join thousands of learners sharpening their skills today
+          </p>
+        </div>
+
+        {/* Register Form */}
+        <form onSubmit={handleRegister} className="space-y-4" noValidate>
+          <TextField
+            id="register-name"
+            name="name"
+            type="text"
+            label="Full Name"
+            placeholder="e.g. Jason Ranti"
+            value={fullName}
+            onChange={(e) => {
+              setFullName(e.target.value);
+              if (nameError) setNameError('');
+            }}
+            error={nameError}
+            leftIcon={<User className="w-4 h-4 stroke-[2]" />}
+            required
+            autoComplete="name"
+          />
+
+          <TextField
+            id="register-email"
+            name="email"
+            type="email"
+            label="Email Address"
+            placeholder="jason.ranti@example.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError('');
+            }}
+            error={emailError}
+            leftIcon={<Mail className="w-4 h-4 stroke-[2]" />}
+            required
+            autoComplete="email"
+          />
+
+          <PasswordField
+            id="register-password"
+            name="password"
+            label="Create Password"
+            placeholder="Minimum 8 characters"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordError) setPasswordError('');
+            }}
+            error={passwordError}
+            required
+            autoComplete="new-password"
+          />
+
+          {/* Terms checkbox */}
+          <div className="space-y-1 pt-1">
+            <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slateText-secondary">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => {
+                  setAgreeTerms(e.target.checked);
+                  if (termsError) setTermsError('');
+                }}
+                className="mt-0.5 w-4 h-4 rounded text-brand-500 focus:ring-brand-200 border-slate-300 accent-brand-500 cursor-pointer"
+              />
+              <span>
+                I agree to the{' '}
+                <a href="#terms" className="text-brand-500 font-semibold underline">
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a href="#privacy" className="text-brand-500 font-semibold underline">
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
+            {termsError && (
+              <p className="text-xs text-rose-500 font-medium pl-6">
+                {termsError}
+              </p>
+            )}
+          </div>
+
+          <div className="pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              size="md"
+              isLoading={isLoading}
+              className="rounded-full"
+            >
+              Create Account
+            </Button>
+          </div>
+        </form>
+
+        {/* Link back to login */}
+        <p className="text-center text-xs text-slateText-secondary">
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            className="font-bold text-brand-500 hover:text-brand-600 transition-colors focus:outline-none focus-visible:underline"
+          >
+            Login
+          </Link>
+        </p>
+      </div>
+    </AuthLayout>
+  );
+};
