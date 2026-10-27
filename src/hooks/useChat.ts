@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { mockConversations } from '../data/messages';
 import type { Attachment, Conversation, Message } from '../types/message';
 
@@ -13,7 +13,7 @@ const AUTO_REPLIES = [
 const createId = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-export function useChat() {
+const useChatState = () => {
   const [conversations, setConversations] = useState<Conversation[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -125,4 +125,18 @@ export function useChat() {
     markAsRead,
     sendMessage,
   };
+};
+
+type ChatContextValue = ReturnType<typeof useChatState>;
+const ChatContext = createContext<ChatContextValue | null>(null);
+
+export const ChatProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const value = useChatState();
+  return React.createElement(ChatContext.Provider, { value }, children);
+};
+
+export function useChat() {
+  const value = useContext(ChatContext);
+  if (!value) throw new Error('useChat must be used inside ChatProvider');
+  return value;
 }

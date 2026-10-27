@@ -2,11 +2,17 @@ import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
-import { PlaceholderView } from './components/PlaceholderView';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { RouteSkeleton } from './components/ui/RouteSkeleton';
+import { ConfirmDialog } from './components/ui/ConfirmDialog';
 import { mockFriends } from './data/mockData';
+import { useAuth } from './hooks/useAuth';
+import { ChatProvider, useChat } from './hooks/useChat';
+import { AuthProvider } from './providers/AuthProvider';
+import { NotificationsProvider } from './providers/NotificationsProvider';
+import { ProfileProvider } from './providers/ProfileProvider';
+import { ThemeProvider } from './hooks/useTheme';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
@@ -19,6 +25,9 @@ const GroupPage = lazy(() => import('./pages/GroupPage').then((module) => ({ def
 const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage').then((module) => ({ default: module.GroupDetailPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
+const HelpPage = lazy(() => import('./pages/HelpPage').then((module) => ({ default: module.HelpPage })));
 
 function DashboardLayout() {
   const navigate = useNavigate();
@@ -27,9 +36,14 @@ function DashboardLayout() {
   // State
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const { logout } = useAuth();
+  const { conversations } = useChat();
+  const unreadMessages = conversations.reduce((total, item) => total + item.unreadCount, 0);
 
   const handleLogout = () => {
-    localStorage.removeItem('coursue_auth');
+    logout();
+    sessionStorage.setItem('coursue_flash', 'You have been logged out.');
     navigate('/login', { replace: true });
   };
 
@@ -44,7 +58,8 @@ function DashboardLayout() {
           friends={mockFriends}
           isOpenMobile={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
-          onLogout={handleLogout}
+          onLogout={() => setLogoutOpen(true)}
+          unreadMessages={unreadMessages}
         />
 
         {/* Column 2 & 3: Main Area (Center + Right) */}
@@ -54,6 +69,7 @@ function DashboardLayout() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+            onRequestLogout={() => setLogoutOpen(true)}
           />
 
           {/* Body Content */}
@@ -83,28 +99,22 @@ function DashboardLayout() {
                 element={<GroupPage />}
               />
               <Route path="/group/:id" element={<GroupDetailPage />} />
-              <Route
-                path="/settings"
-                element={
-                  <PlaceholderView
-                    title="Account & Platform Settings"
-                    description="Customize your profile preferences, notifications, theme appearance, and billing information."
-                    onBackToDashboard={() => navigate('/')}
-                  />
-                }
-              />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/help" element={<HelpPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
         </div>
       </div>
+      <ConfirmDialog isOpen={logoutOpen} title="Log out" message="Are you sure you want to log out?" confirmLabel="Logout" onCancel={() => setLogoutOpen(false)} onConfirm={handleLogout} />
     </div>
   );
 }
 
 // Redirect authenticated users away from auth pages (e.g. /login -> /)
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = localStorage.getItem('coursue_auth') === 'true';
+  const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
@@ -113,8 +123,13 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <ProfileProvider>
+          <NotificationsProvider>
+            <ChatProvider>
+              <ErrorBoundary>
+                <BrowserRouter>
         <a href="#main-content" className="fixed left-4 top-4 z-toast -translate-y-24 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-transform focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">Skip to content</a>
         <Suspense fallback={<div className="min-h-screen bg-brand-bg p-6"><RouteSkeleton /></div>}>
           <Routes>
@@ -165,7 +180,12 @@ export default function App() {
         />
           </Routes>
         </Suspense>
-      </BrowserRouter>
-    </ErrorBoundary>
+                </BrowserRouter>
+              </ErrorBoundary>
+            </ChatProvider>
+          </NotificationsProvider>
+        </ProfileProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

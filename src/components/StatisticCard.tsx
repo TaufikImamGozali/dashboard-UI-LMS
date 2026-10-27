@@ -10,20 +10,21 @@ import {
   Tooltip,
 } from 'recharts';
 import type { StatisticDataPoint } from '../types';
-import { currentUser } from '../data/mockData';
+import { useProfile } from '../hooks/useProfile';
 
 interface StatisticCardProps {
   data: StatisticDataPoint[];
 }
 
 export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
+  const { profile } = useProfile();
   // SVG circular progress calculation
   const radius = 56;
   const stroke = 3;
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset =
-    circumference - (currentUser.completionPercentage / 100) * circumference;
+    circumference - (profile.completionPercentage / 100) * circumference;
 
   return (
     <div className="bg-surface rounded-card p-6 border border-outline-subtle shadow-xs">
@@ -72,22 +73,22 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({ data }) => {
           {/* Inner Avatar */}
           <div className="absolute inset-0 flex items-center justify-center">
             <img height="160" width="160" loading="lazy"
-              src={currentUser.avatar}
-              alt={currentUser.name}
+              src={profile.avatar}
+              alt={profile.name}
               className="w-20 h-20 rounded-full object-cover ring-4 ring-brand-50 shadow-xs"
             />
           </div>
 
           {/* 32% Badge at ~2 o'clock */}
           <div className="absolute top-1 right-2 bg-brand-500 text-white text-meta font-bold px-2 py-0.5 rounded-full shadow-purple-glow">
-            {currentUser.completionPercentage}%
+            {profile.completionPercentage}%
           </div>
         </div>
 
         {/* Greeting & Subtext */}
         <div className="text-center mt-3">
           <h3 className="text-base font-extrabold text-slateText-primary flex items-center justify-center gap-1.5">
-            <span>Good Morning Jason</span>
+            <span>Good Morning {profile.name.split(' ')[0]}</span>
             <span role="img" aria-label="fire">🔥</span>
           </h3>
           <p className="text-xs text-slateText-muted mt-1 max-w-52 mx-auto leading-relaxed">

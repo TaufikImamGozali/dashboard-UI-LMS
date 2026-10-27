@@ -19,6 +19,7 @@ interface SidebarProps {
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
   onLogout?: () => void;
+  unreadMessages?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -28,12 +29,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpenMobile = false,
   onCloseMobile,
   onLogout,
+  unreadMessages = 0,
 }) => {
   const mobilePanelRef = useFocusTrap<HTMLDivElement>(isOpenMobile, () => onCloseMobile?.());
   const isInbox = currentPath === '/inbox' || currentPath.startsWith('/group');
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { id: 'inbox', label: 'Inbox', icon: Mail, path: '/inbox', badge: 3 },
+    { id: 'inbox', label: 'Inbox', icon: Mail, path: '/inbox', badge: unreadMessages },
     { id: 'lesson', label: 'Lesson', icon: BookOpen, path: '/lesson' },
     { id: 'task', label: 'Task', icon: CheckSquare, path: '/task' },
     { id: 'group', label: 'Group', icon: Users, path: '/group' },
@@ -85,6 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               const Icon = item.icon;
               return (
                 <button
+                  data-navigation
                   key={item.id}
                   onClick={() => {
                     onNavigate(item.path);
@@ -158,16 +161,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </p>
         <div className="space-y-1">
           <button
+            type="button"
+            data-navigation
+            title="Setting"
             onClick={() => {
               onNavigate('/settings');
               if (onCloseMobile) onCloseMobile();
             }}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slateText-secondary hover:bg-slate-50 hover:text-slateText-primary transition-colors text-left ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''}`}
+            aria-current={currentPath === '/settings' ? 'page' : undefined}
+            className={`group relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${currentPath === '/settings' ? 'bg-brand-50 text-brand-500' : 'text-slateText-secondary hover:bg-slate-50 hover:text-slateText-primary'} ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''}`}
           >
             <Settings className="w-4.5 h-4.5 text-slateText-muted stroke-[1.8]" />
             <span className={isInbox ? 'md:max-xl:hidden' : ''}>Setting</span>
+            {isInbox && <span role="tooltip" className="pointer-events-none absolute left-full z-tooltip ml-3 hidden rounded-lg bg-content-primary px-3 py-2 text-xs font-bold text-content-inverse opacity-0 shadow-card transition-opacity md:max-xl:block md:max-xl:group-hover:opacity-100 md:max-xl:group-focus-visible:opacity-100">Setting</span>}
           </button>
           <button
+            type="button"
+            title="Logout"
             onClick={() => {
               if (onCloseMobile) onCloseMobile();
               if (onLogout) {
@@ -176,10 +186,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 alert('Logout clicked');
               }
             }}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-rose-500 hover:bg-rose-50 transition-colors text-left ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''}`}
+            className={`group relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-rose-500 hover:bg-rose-50 transition-colors text-left ${isInbox ? 'md:max-xl:justify-center md:max-xl:px-2' : ''}`}
           >
             <LogOut className="w-4.5 h-4.5 text-rose-500 stroke-[1.8]" />
             <span className={isInbox ? 'md:max-xl:hidden' : ''}>Logout</span>
+            {isInbox && <span role="tooltip" className="pointer-events-none absolute left-full z-tooltip ml-3 hidden rounded-lg bg-content-primary px-3 py-2 text-xs font-bold text-content-inverse opacity-0 shadow-card transition-opacity md:max-xl:block md:max-xl:group-hover:opacity-100 md:max-xl:group-focus-visible:opacity-100">Logout</span>}
           </button>
         </div>
       </div>

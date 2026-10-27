@@ -5,9 +5,11 @@ import { AuthLayout } from '../components/auth/AuthLayout';
 import { TextField } from '../components/ui/TextField';
 import { PasswordField } from '../components/ui/PasswordField';
 import { Button } from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -69,7 +71,7 @@ export const RegisterPage: React.FC = () => {
     setIsLoading(true);
 
     setTimeout(() => {
-      localStorage.setItem('coursue_auth', 'true');
+      login();
       setIsLoading(false);
       navigate('/', { replace: true });
     }, 1000);

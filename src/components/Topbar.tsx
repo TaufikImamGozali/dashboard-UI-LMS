@@ -1,19 +1,27 @@
 import React from 'react';
-import { Search, Mail, Bell, Menu } from 'lucide-react';
-import { currentUser } from '../data/mockData';
+import { Search, Mail, Menu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from './ui/ThemeToggle';
+import { useChat } from '../hooks/useChat';
+import { NotificationBell } from './notifications/NotificationBell';
+import { ProfileMenu } from './profile/ProfileMenu';
 
 interface TopbarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onOpenMobileSidebar?: () => void;
+  onRequestLogout: () => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
   searchQuery,
   onSearchChange,
   onOpenMobileSidebar,
+  onRequestLogout,
 }) => {
+  const navigate = useNavigate();
+  const { conversations } = useChat();
+  const unreadMessages = conversations.reduce((total, item) => total + item.unreadCount, 0);
   return (
     <header className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 py-4 px-6 md:px-8 border-b border-outline-subtle">
       {/* Left: Mobile hamburger + Pill Search Bar */}
@@ -57,37 +65,23 @@ export const Topbar: React.FC<TopbarProps> = ({
         <ThemeToggle />
         {/* Mail Icon Button */}
         <button
+          type="button"
+          data-navigation
+          onClick={() => navigate('/inbox')}
+          title="Messages"
           className="relative w-10 h-10 rounded-full bg-surface hover:bg-surface-muted border border-outline flex items-center justify-center text-slateText-secondary hover:text-brand-500 transition-colors shadow-2xs"
-          aria-label="Open messages"
+          aria-label={`Messages, ${unreadMessages} unread`}
         >
           <Mail className="w-4 h-4 stroke-[2]" />
+          {unreadMessages > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1 text-micro font-extrabold text-white ring-2 ring-surface">{unreadMessages > 9 ? '9+' : unreadMessages}</span>}
         </button>
 
-        {/* Bell Notification Button */}
-        <button
-          className="relative w-10 h-10 rounded-full bg-surface hover:bg-surface-muted border border-outline flex items-center justify-center text-slateText-secondary hover:text-brand-500 transition-colors shadow-2xs"
-          aria-label="View notifications"
-        >
-          <Bell className="w-4 h-4 stroke-[2]" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-surface" />
-        </button>
+        <NotificationBell />
 
         {/* Vertical divider */}
         <div className="h-7 w-px bg-outline mx-1 hidden sm:block" />
 
-        {/* User Avatar + Name */}
-        <div className="flex items-center gap-3 pl-1 group">
-          <div className="relative">
-            <img height="160" width="160" loading="lazy"
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-9 h-9 rounded-full object-cover ring-2 ring-brand-100 group-hover:ring-brand-300 transition-all"
-            />
-          </div>
-          <span className="text-sm font-semibold text-slateText-primary group-hover:text-brand-500 transition-colors hidden sm:inline-block">
-            {currentUser.name}
-          </span>
-        </div>
+        <ProfileMenu onRequestLogout={onRequestLogout} />
       </div>
     </header>
   );

@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { TextField } from '../components/ui/TextField';
 import { PasswordField } from '../components/ui/PasswordField';
 import { Button } from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
+import { ToastContainer } from '../components/ui/Toast';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const { toasts, showToast, dismissToast } = useToast();
+
+  useEffect(() => {
+    const message = sessionStorage.getItem('coursue_flash');
+    if (message) { sessionStorage.removeItem('coursue_flash'); showToast(message, 'success'); }
+  }, [showToast]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,10 +67,7 @@ export const LoginPage: React.FC = () => {
 
     // Mock login delay of 1 second as specified
     setTimeout(() => {
-      localStorage.setItem('coursue_auth', 'true');
-      if (rememberMe) {
-        localStorage.setItem('coursue_remember', 'true');
-      }
+      login(rememberMe);
       setIsLoading(false);
       navigate('/', { replace: true });
     }, 1000);
@@ -69,13 +76,14 @@ export const LoginPage: React.FC = () => {
   const handleGoogleLogin = () => {
     setIsLoading(true);
     setTimeout(() => {
-      localStorage.setItem('coursue_auth', 'true');
+      login();
       setIsLoading(false);
       navigate('/', { replace: true });
     }, 1000);
   };
 
   return (
+    <>
     <AuthLayout>
       <div className="space-y-6">
         {/* Heading */}
@@ -212,5 +220,7 @@ export const LoginPage: React.FC = () => {
         </p>
       </div>
     </AuthLayout>
+    <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    </>
   );
 };

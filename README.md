@@ -83,7 +83,9 @@ The Google login button also enters the mock authenticated session.
 | `/inbox` | Mentor and friend messages | Protected |
 | `/group` | Joined and discoverable study groups | Protected |
 | `/group/:id` | Group discussion, members, and resources | Protected |
-| `/settings` | Settings placeholder | Protected |
+| `/settings` | Profile, appearance, notification, and account settings | Protected |
+| `/notifications` | Full notification history and type filters | Protected |
+| `/help` | Help and support placeholder | Protected |
 | `*` | Friendly not-found page | Protected |
 
 ## Project structure
@@ -121,6 +123,10 @@ Coursue uses the following keys:
 - `coursue_auth`
 - `coursue_remember`
 - `coursue_theme`
+- `coursue_accent`
+- `coursue_profile_v1`
+- `coursue_notification_preferences_v1`
+- `coursue_notifications_v1`
 - `coursue_tasks_v1`
 - `coursue_conversations_v1`
 - `coursue_groups_v1`

@@ -11,9 +11,12 @@ import { CourseInfoCard } from '../components/course/CourseInfoCard';
 import { CourseMentorCard } from '../components/course/CourseMentorCard';
 import { CourseCard } from '../components/CourseCard';
 import { Button } from '../components/ui/Button';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { mockCoursesDetail } from '../data/courses';
 import { mockCourses, mockFriends } from '../data/mockData';
 import type { CourseDetail, CurriculumLesson } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import { useChat } from '../hooks/useChat';
 
 const firstAvailableLesson = (course: CourseDetail | null): CurriculumLesson | null => {
   if (!course) return null;
@@ -31,6 +34,10 @@ const CourseDetailContent: React.FC<{ courseId?: string }> = ({ courseId }) => {
   const [activeLesson, setActiveLesson] = useState<CurriculumLesson | null>(() => firstAvailableLesson(initialCourse));
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const { logout } = useAuth();
+  const { conversations } = useChat();
+  const unreadMessages = conversations.reduce((total, item) => total + item.unreadCount, 0);
 
   // Mark lesson as complete & update state
   const handleMarkAsComplete = (lessonId: string) => {
@@ -97,7 +104,8 @@ const CourseDetailContent: React.FC<{ courseId?: string }> = ({ courseId }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('coursue_auth');
+    logout();
+    sessionStorage.setItem('coursue_flash', 'You have been logged out.');
     navigate('/login', { replace: true });
   };
 
@@ -162,7 +170,8 @@ const CourseDetailContent: React.FC<{ courseId?: string }> = ({ courseId }) => {
           friends={mockFriends}
           isOpenMobile={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
-          onLogout={handleLogout}
+          onLogout={() => setLogoutOpen(true)}
+          unreadMessages={unreadMessages}
         />
 
         {/* Column 2 & 3: Content Area */}
@@ -172,6 +181,7 @@ const CourseDetailContent: React.FC<{ courseId?: string }> = ({ courseId }) => {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+            onRequestLogout={() => setLogoutOpen(true)}
           />
 
           {/* Main Course Content */}
@@ -270,6 +280,7 @@ const CourseDetailContent: React.FC<{ courseId?: string }> = ({ courseId }) => {
           Continue Learning
         </Button>
       </div>
+      <ConfirmDialog isOpen={logoutOpen} title="Log out" message="Are you sure you want to log out?" confirmLabel="Logout" onCancel={() => setLogoutOpen(false)} onConfirm={handleLogout} />
     </div>
   );
 };
