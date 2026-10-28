@@ -18,6 +18,7 @@ import { ThemeProvider } from './hooks/useTheme';
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then((module) => ({ default: module.ResetPasswordPage })));
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage').then((module) => ({ default: module.CourseDetailPage })));
 const LessonPage = lazy(() => import('./pages/LessonPage').then((module) => ({ default: module.LessonPage })));
 const TaskPage = lazy(() => import('./pages/TaskPage').then((module) => ({ default: module.TaskPage })));
@@ -167,6 +168,10 @@ export default function App() {
               <ForgotPasswordPage />
             </PublicOnlyRoute>
           }
+        />
+        <Route
+          path="/reset-password"
+          element={<ResetPasswordPage />}
         />
 
         {/* Protected Course Detail Route */}

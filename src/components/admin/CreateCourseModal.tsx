@@ -138,8 +138,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
                 className="w-full px-4 py-2.5 rounded-xl border border-outline focus:border-brand-500 bg-surface outline-none transition-all"
-              >
-              </input>
+              />
             </div>
 
             <div>

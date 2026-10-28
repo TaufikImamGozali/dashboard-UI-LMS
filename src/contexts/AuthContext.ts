@@ -8,6 +8,7 @@ export interface AuthContextValue {
   login: (remember?: boolean, role?: UserRole) => void;
   signIn: (email: string, password: string, remember?: boolean) => Promise<{ success: boolean; role?: UserRole; error?: string }>;
   signUp: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   switchRole: (role: UserRole) => void;
 }
