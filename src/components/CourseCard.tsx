@@ -52,6 +52,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             loading="lazy"
           />
 
+          {/* Price Badge */}
+          <div className="absolute top-2.5 left-2.5 pointer-events-none">
+            {course.price && course.price > 0 ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-purple-900/85 backdrop-blur-md text-purple-200 font-extrabold text-micro tracking-wide border border-purple-400/30 shadow-xs">
+                ${course.price}
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/85 backdrop-blur-md text-white font-extrabold text-micro tracking-wide shadow-xs">
+                GRATIS
+              </span>
+            )}
+          </div>
+
           {/* Heart / Favorite Button */}
           <button
             type="button"

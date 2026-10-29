@@ -40,12 +40,11 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
   };
 
   const handleLessonClick = (lesson: CurriculumLesson) => {
+    onSelectLesson(lesson);
     if (lesson.isLocked) {
       setLockedTooltip(lesson.id);
       setTimeout(() => setLockedTooltip(null), 2500);
-      return;
     }
-    onSelectLesson(lesson);
   };
 
   return (
@@ -140,7 +139,7 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
                         {/* Tooltip on locked click */}
                         {isTooltipVisible && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 z-tooltip bg-slate-900 text-white text-meta font-medium px-3 py-1.5 rounded-lg shadow-lg animate-fadeIn pointer-events-none">
-                            Complete previous lessons to unlock
+                            Daftar atau beli kelas ini untuk membuka materi
                           </div>
                         )}
                       </div>

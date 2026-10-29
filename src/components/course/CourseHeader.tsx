@@ -26,9 +26,20 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({ course }) => {
         </span>
       </nav>
 
-      {/* Category Pill */}
-      <div>
+      {/* Category & Price Pill Row */}
+      <div className="flex items-center gap-2.5 flex-wrap">
         <TagBadge category={course.category} label={course.categoryLabel} />
+        {course.price !== undefined && (
+          <span
+            className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 ${
+              course.price > 0
+                ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs'
+                : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-2xs'
+            }`}
+          >
+            {course.price > 0 ? `Kelas Premium Berbayar • $${course.price}` : 'Kelas Gratis'}
+          </span>
+        )}
       </div>
 
       {/* Main Course Title */}

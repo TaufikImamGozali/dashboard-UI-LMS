@@ -1,3 +1,5 @@
+export * from './database';
+
 export type CategoryType = 'frontend' | 'design' | 'branding';
 export type CourseLevel = 'All' | 'Beginner' | 'Intermediate' | 'Advanced';
 export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started';
@@ -41,6 +43,8 @@ export interface Course {
   totalDuration?: string;
   status?: 'in-progress' | 'completed' | 'not-started';
   releaseDate?: string;
+  slug?: string;
+  price?: number;
 }
 
 export interface Lesson {
@@ -51,6 +55,8 @@ export interface Lesson {
   type: CategoryType;
   typeLabel: string;
   description: string;
+  courseId?: string;
+  title?: string;
 }
 
 export interface Mentor {
@@ -127,4 +133,6 @@ export interface CourseDetail {
   isFavorite: boolean;
   status?: 'in-progress' | 'completed' | 'not-started';
   releaseDate?: string;
+  price?: number;
+  isEnrolled?: boolean;
 }

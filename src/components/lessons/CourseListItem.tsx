@@ -88,6 +88,17 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
                 {course.level}
               </span>
             )}
+            {course.price !== undefined && (
+              <span
+                className={`text-meta font-extrabold px-2.5 py-0.5 rounded-full ${
+                  course.price > 0
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                    : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                }`}
+              >
+                {course.price > 0 ? `$${course.price}` : 'GRATIS'}
+              </span>
+            )}
           </div>
 
           <h2 className="text-sm sm:text-base font-bold text-slateText-primary group-hover:text-brand-500 transition-colors line-clamp-1">

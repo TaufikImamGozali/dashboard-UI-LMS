@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { CategoryType, CourseLevel, CourseStatus, SortOption, ViewMode, Course } from '../types';
-import { mockCourses } from '../data/mockData';
 import { PageHeader } from '../components/lessons/PageHeader';
 import { FilterBar } from '../components/lessons/FilterBar';
 import { StatusTabs } from '../components/lessons/StatusTabs';
@@ -9,6 +8,7 @@ import { CourseList } from '../components/lessons/CourseList';
 import { CourseSkeleton } from '../components/lessons/CourseSkeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination } from '../components/lessons/Pagination';
+import { courseService } from '../services/courseService';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -22,16 +22,32 @@ export const LessonPage: React.FC = () => {
   const [selectedSort, setSelectedSort] = useState<SortOption>('newest');
   const [selectedStatus, setSelectedStatus] = useState<CourseStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [courses, setCourses] = useState<Course[]>(mockCourses);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate async data fetch on first mount
+  // Fetch real published courses from Supabase
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
+    let isMounted = true;
+    const fetchCourses = async () => {
+      setIsLoading(true);
+      try {
+        const data = await courseService.getPublishedCourses();
+        if (isMounted) {
+          setCourses(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch courses in LessonPage:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // ─── Reset page on filter change ────────────────────────────────────────────
   // ─── Filtering + Sorting logic ──────────────────────────────────────────────
   const filtered = useMemo(() => {
     let result = [...courses];
@@ -59,15 +75,7 @@ export const LessonPage: React.FC = () => {
         );
         break;
       case 'popular':
-        result.sort((a, b) => {
-          const aStudents = typeof a.studentsCount === 'string'
-            ? parseFloat(a.studentsCount)
-            : (a.studentsCount ?? 0);
-          const bStudents = typeof b.studentsCount === 'string'
-            ? parseFloat(b.studentsCount)
-            : (b.studentsCount ?? 0);
-          return bStudents - aStudents;
-        });
+        result.sort((a, b) => (b.reviewsCount ?? 0) - (a.reviewsCount ?? 0));
         break;
       case 'rating':
         result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
@@ -78,24 +86,17 @@ export const LessonPage: React.FC = () => {
     }
 
     return result;
-  }, [courses, selectedCategory, selectedLevel, selectedSort, selectedStatus]);
+  }, [courses, selectedCategory, selectedLevel, selectedStatus, selectedSort]);
 
-  // ─── Status counts (based on current category + level filters only) ─────────
+  // ─── Status counts ──────────────────────────────────────────────────────────
   const statusCounts = useMemo(() => {
-    let base = [...courses];
-    if (selectedCategory !== 'all') {
-      base = base.filter((c) => c.category === selectedCategory);
-    }
-    if (selectedLevel !== 'All') {
-      base = base.filter((c) => c.level === selectedLevel);
-    }
     return {
-      all: base.length,
-      'in-progress': base.filter((c) => c.status === 'in-progress').length,
-      completed: base.filter((c) => c.status === 'completed').length,
-      'not-started': base.filter((c) => c.status === 'not-started').length,
+      all: courses.length,
+      'in-progress': courses.filter((c) => c.status === 'in-progress').length,
+      completed: courses.filter((c) => c.status === 'completed').length,
+      'not-started': courses.filter((c) => c.status === 'not-started').length,
     };
-  }, [courses, selectedCategory, selectedLevel]);
+  }, [courses]);
 
   // ─── Pagination ──────────────────────────────────────────────────────────────
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -114,7 +115,7 @@ export const LessonPage: React.FC = () => {
   };
 
   const handleSelectCourse = (course: Course) => {
-    navigate(`/course/${course.id}`);
+    navigate(`/course/${course.slug || course.id}`);
   };
 
   const handleResetFilters = () => {
@@ -157,9 +158,9 @@ export const LessonPage: React.FC = () => {
           <CourseSkeleton viewMode={viewMode} count={ITEMS_PER_PAGE} />
         ) : paginated.length === 0 ? (
           <EmptyState
-            title="No Lessons Found"
-            description="No courses match your selected filters. Try expanding your search."
-            actionLabel="Reset Filters"
+            title="Tidak Ada Kursus Ditemukan"
+            description="Tidak ada kursus yang cocok dengan filter yang dipilih. Coba reset filter Anda."
+            actionLabel="Reset Filter"
             onAction={handleResetFilters}
           />
         ) : (

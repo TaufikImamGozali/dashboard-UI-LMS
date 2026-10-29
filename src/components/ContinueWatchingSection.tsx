@@ -86,12 +86,27 @@ export const ContinueWatchingSection: React.FC<ContinueWatchingSectionProps> = (
             />
           ))}
         </div>
+      ) : courses.length === 0 ? (
+        <EmptyState
+          title="Belum Ada Kursus yang Diikuti"
+          description="Jelajahi katalog kursus dan mulailah belajar keahlian baru hari ini."
+          actionLabel="Jelajahi Semua Kursus"
+          onAction={() => {
+            if (onCourseClick) {
+              window.location.assign('/lesson');
+            } else {
+              window.location.assign('/lesson');
+            }
+          }}
+          icon={<Compass className="h-7 w-7" />}
+          className="py-8"
+        />
       ) : (
         <EmptyState
-          title={`No courses found matching “${searchQuery}”`}
-          description='Try searching for “UI/UX”, “Front End”, or “Branding”.'
-          actionLabel="Browse all courses"
-          onAction={() => window.location.assign('/lesson')}
+          title={`Tidak ditemukan kursus yang cocok dengan “${searchQuery}”`}
+          description='Coba cari kata kunci lain seperti “UI/UX”, “Front End”, atau “Branding”.'
+          actionLabel="Tampilkan semua kursus saya"
+          onAction={() => {}}
           icon={<Compass className="h-7 w-7" />}
           className="py-8"
         />

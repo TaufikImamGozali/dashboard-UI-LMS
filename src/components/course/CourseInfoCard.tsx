@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart2, Globe, BookOpen, Award, Infinity as InfinityIcon } from 'lucide-react';
+import { BarChart2, Globe, BookOpen, Award, Infinity as InfinityIcon, Tag } from 'lucide-react';
 import type { CourseDetail } from '../../types';
 
 interface CourseInfoCardProps {
@@ -10,6 +10,11 @@ export const CourseInfoCard: React.FC<CourseInfoCardProps> = ({ course }) => {
   const totalLessons = course.sections.reduce((acc, s) => acc + s.lessons.length, 0);
 
   const infoItems = [
+    {
+      icon: Tag,
+      label: 'Price',
+      value: course.price && course.price > 0 ? `$${course.price} USD` : '100% Gratis',
+    },
     {
       icon: BarChart2,
       label: 'Skill Level',

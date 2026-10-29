@@ -29,8 +29,14 @@ export const LessonTable: React.FC<LessonTableProps> = ({
         </button>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden sm:block overflow-x-auto">
+      {lessons.length === 0 ? (
+        <div className="py-8 text-center text-xs text-slateText-muted">
+          Belum ada materi pelajaran aktif. Silakan pilih dan ikuti kursus untuk melihat jadwal materi Anda di sini.
+        </div>
+      ) : (
+        <>
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-outline-subtle text-meta font-bold text-slateText-muted uppercase tracking-wider">
@@ -137,6 +143,8 @@ export const LessonTable: React.FC<LessonTableProps> = ({
           </div>
         ))}
       </div>
-    </div>
+    </>
+  )}
+</div>
   );
 };

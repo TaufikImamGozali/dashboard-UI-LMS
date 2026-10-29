@@ -1,235 +1,206 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
   CheckCircle2,
-  RotateCcw,
+  Lock,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  CreditCard,
 } from 'lucide-react';
 import type { CurriculumLesson } from '../../types';
+import { Button } from '../ui/Button';
 
 interface VideoPlayerProps {
   lesson: CurriculumLesson | null;
   thumbnail: string;
+  isEnrolled: boolean;
+  isPaid?: boolean;
+  price?: number;
+  isEnrolling?: boolean;
   onMarkAsComplete: (lessonId: string) => void;
+  onPreviousLesson?: () => void;
+  onNextLesson?: () => void;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
+  onEnrollFree?: () => void;
+  onPaidClick?: () => void;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   lesson,
   thumbnail,
+  isEnrolled,
+  isPaid = false,
+  price = 0,
+  isEnrolling = false,
   onMarkAsComplete,
+  onPreviousLesson,
+  onNextLesson,
+  hasPrevious = false,
+  hasNext = false,
+  onEnrollFree,
+  onPaidClick,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(35);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play().catch(() => {
-          // autoplay / playback fallback
-        });
-      }
+  // Extract YouTube ID from videoUrl or check if it's already an embed URL
+  const getEmbedUrl = (url?: string): string | null => {
+    if (!url) return null;
+    if (url.includes('youtube-nocookie.com/embed/')) return url;
+    if (url.includes('youtube.com/embed/')) {
+      return url.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
     }
-    setIsPlaying(!isPlaying);
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (match && match[1]) {
+      return `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0&modestbranding=1`;
+    }
+    return url;
   };
 
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-    }
-    setIsMuted(!isMuted);
-  };
-
-  const handleFullscreen = () => {
-    if (containerRef.current) {
-      if (!document.fullscreenElement) {
-        containerRef.current.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen().catch(() => {});
-      }
-    }
-  };
+  const isLocked = !isEnrolled && lesson && !lesson.videoUrl && lesson.isLocked;
+  const embedUrl = lesson ? getEmbedUrl(lesson.videoUrl) : null;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Video Container */}
-      <div
-        ref={containerRef}
-        className="relative aspect-video w-full rounded-card overflow-hidden bg-slate-900 shadow-card group select-none"
-      >
-        {lesson?.videoUrl ? (
-          <video
-            ref={videoRef}
-            src={lesson.videoUrl}
-            poster={thumbnail}
-            className="w-full h-full object-cover"
-            onTimeUpdate={() => {
-              if (videoRef.current) {
-                const current = videoRef.current.currentTime;
-                const duration = videoRef.current.duration || 1;
-                setProgress((current / duration) * 100);
-              }
-            }}
-            onEnded={() => {
-              setIsPlaying(false);
-              if (lesson) onMarkAsComplete(lesson.id);
-            }}
-            onClick={togglePlay}
+      <div className="relative aspect-video w-full rounded-card overflow-hidden bg-slate-900 shadow-card select-none">
+        {isLocked ? (
+          /* Locked State Overlay */
+          <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center text-white bg-slate-950/90 backdrop-blur-sm">
+            <img height="160" width="160"
+              src={thumbnail}
+              alt="Locked lesson"
+              className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none"
+              loading="lazy"
+            />
+            <div className="relative z-10 max-w-md space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 text-brand-300 flex items-center justify-center mx-auto shadow-inner ring-1 ring-white/20">
+                <Lock className="w-7 h-7" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-xl font-bold text-white tracking-tight">
+                  Materi Ini Terkunci
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {isPaid
+                    ? 'Kelas ini merupakan kelas berbayar. Selesaikan pendaftaran untuk membuka semua video materi.'
+                    : 'Daftar ke kelas gratis ini untuk membuka seluruh kurikulum dan mencatat progres belajar Anda.'}
+                </p>
+              </div>
+
+              <div className="pt-2">
+                {isPaid ? (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    onClick={onPaidClick}
+                    leftIcon={<CreditCard className="w-4 h-4" />}
+                    className="rounded-full shadow-purple-glow"
+                  >
+                    Beli Kelas (${price})
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    isLoading={isEnrolling}
+                    onClick={onEnrollFree}
+                    leftIcon={<Sparkles className="w-4 h-4" />}
+                    className="rounded-full shadow-purple-glow"
+                  >
+                    Ikuti Kelas Gratis Ini
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : embedUrl ? (
+          /* YouTube NoCookie iFrame Embed */
+          <iframe
+            src={embedUrl}
+            title={lesson?.title || 'Course lesson'}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
           />
         ) : (
-          <img height="160" width="160" loading="lazy"
-            src={thumbnail}
-            alt={lesson?.title || 'Course video thumbnail'}
-            className="w-full h-full object-cover opacity-90"
-          />
-        )}
-
-        {/* Center Circular Play Button */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <button
-            type="button"
-            onClick={togglePlay}
-            className={`pointer-events-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-brand-500/90 hover:bg-brand-500 text-white flex items-center justify-center shadow-purple-glow backdrop-blur-md transform transition-all duration-300 hover:scale-110 active:scale-95 ${
-              isPlaying ? 'opacity-0 group-hover:opacity-90' : 'opacity-100'
-            }`}
-            aria-label={isPlaying ? 'Pause video' : 'Play video'}
-          >
-            {isPlaying ? (
-              <Pause className="w-7 h-7 sm:w-8 sm:h-8 fill-current stroke-none" />
-            ) : (
-              <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-current stroke-none ml-1" />
-            )}
-          </button>
-        </div>
-
-        {/* Top Floating Badge */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-          <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-semibold tracking-wide flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Now Playing</span>
-          </span>
-
-          {lesson?.isCompleted && (
-            <span className="px-3 py-1 rounded-full bg-emerald-500/90 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Completed</span>
-            </span>
-          )}
-        </div>
-
-        {/* Bottom Control Bar */}
-        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 pt-8 flex flex-col gap-2 transition-opacity duration-300">
-          {/* Progress scrubber bar */}
-          <div
-            className="w-full h-1.5 bg-white/30 rounded-full cursor-pointer relative group/bar"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const clickPos = (e.clientX - rect.left) / rect.width;
-              setProgress(clickPos * 100);
-              if (videoRef.current && videoRef.current.duration) {
-                videoRef.current.currentTime = clickPos * videoRef.current.duration;
-              }
-            }}
-          >
-            <div
-              className="h-full bg-brand-500 rounded-full relative transition-all"
-              style={{ width: `${progress}%` }}
-            >
-              <span className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-surface rounded-full shadow-md scale-0 group-hover/bar:scale-100 transition-transform" />
+          /* Fallback Thumbnail / Placeholder */
+          <div className="relative w-full h-full flex items-center justify-center">
+            <img height="160" width="160"
+              src={thumbnail}
+              alt={lesson?.title || 'Lesson thumbnail'}
+              className="w-full h-full object-cover opacity-80"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <p className="text-sm font-semibold text-white bg-black/60 px-4 py-2 rounded-full backdrop-blur-md">
+                Pilih materi dari daftar kurikulum
+              </p>
             </div>
           </div>
+        )}
 
-          {/* Controls Row */}
-          <div className="flex items-center justify-between text-white text-xs font-medium pt-1">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={togglePlay}
-                className="hover:text-brand-300 transition-colors p-1"
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-current stroke-none" />
-                ) : (
-                  <Play className="w-4 h-4 fill-current stroke-none" />
-                )}
-              </button>
+        {/* Floating Top Badge */}
+        {lesson && !isLocked && (
+          <div className="absolute top-3 left-3 pointer-events-none z-10">
+            <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-xs font-semibold tracking-wide flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="truncate max-w-[220px] sm:max-w-md">{lesson.title}</span>
+            </span>
+          </div>
+        )}
+      </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (videoRef.current) videoRef.current.currentTime = 0;
-                  setProgress(0);
-                }}
-                className="hover:text-brand-300 transition-colors p-1"
-                aria-label="Replay video"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
+      {/* Lesson Controls & Navigation Bar */}
+      {lesson && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-2xl bg-surface border border-outline shadow-2xs">
+          {/* Navigation: Previous Lesson */}
+          <button
+            type="button"
+            disabled={!hasPrevious}
+            onClick={onPreviousLesson}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              hasPrevious
+                ? 'bg-surface-muted hover:bg-slate-200/70 text-slateText-primary active:scale-95'
+                : 'opacity-40 cursor-not-allowed text-slateText-muted'
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Materi Sebelumnya</span>
+          </button>
 
-              <button
-                type="button"
-                onClick={toggleMute}
-                className="hover:text-brand-300 transition-colors p-1"
-                aria-label={isMuted ? 'Unmute' : 'Mute'}
-              >
-                {isMuted ? (
-                  <VolumeX className="w-4 h-4" />
-                ) : (
-                  <Volume2 className="w-4 h-4" />
-                )}
-              </button>
-
-              <span className="text-white/80 select-none">
-                {lesson?.duration || '15:00'}
-              </span>
-            </div>
-
+          {/* Mark as Complete Button */}
+          {isEnrolled && (
             <button
               type="button"
-              onClick={handleFullscreen}
-              className="hover:text-brand-300 transition-colors p-1"
-              aria-label="Fullscreen"
+              onClick={() => onMarkAsComplete(lesson.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                lesson.isCompleted
+                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                  : 'bg-brand-500 text-white hover:bg-brand-600 shadow-purple-glow'
+              }`}
             >
-              <Maximize className="w-4 h-4" />
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{lesson.isCompleted ? 'Selesai ✓' : 'Tandai Selesai'}</span>
             </button>
-          </div>
-        </div>
-      </div>
+          )}
 
-      {/* Lesson Title & Mark As Complete Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-        <div className="space-y-0.5">
-          <p className="text-xs font-semibold text-brand-500 uppercase tracking-wider">
-            Current Lesson
-          </p>
-          <h2 className="text-base sm:text-lg font-bold text-slateText-primary">
-            {lesson?.title || 'Select a lesson to begin learning'}
-          </h2>
-        </div>
-
-        {lesson && (
+          {/* Navigation: Next Lesson */}
           <button
             type="button"
-            onClick={() => onMarkAsComplete(lesson.id)}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95 shrink-0 ${
-              lesson.isCompleted
-                ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                : 'bg-brand-50 hover:bg-brand-100 text-brand-500 border border-brand-200 shadow-2xs'
+            disabled={!hasNext}
+            onClick={onNextLesson}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              hasNext
+                ? 'bg-surface-muted hover:bg-slate-200/70 text-slateText-primary active:scale-95'
+                : 'opacity-40 cursor-not-allowed text-slateText-muted'
             }`}
           >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{lesson.isCompleted ? 'Completed' : 'Mark as Complete'}</span>
+            <span>Materi Berikutnya</span>
+            <ChevronRight className="w-4 h-4" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

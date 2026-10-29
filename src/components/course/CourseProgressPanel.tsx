@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Share2, Check, ArrowRight } from 'lucide-react';
+import { Heart, Share2, Check, ArrowRight, Sparkles, CreditCard } from 'lucide-react';
 import { ProgressRing } from './ProgressRing';
 import { Button } from '../ui/Button';
 
@@ -7,19 +7,30 @@ interface CourseProgressPanelProps {
   completedLessons: number;
   totalLessons: number;
   isFavorite: boolean;
+  isEnrolled: boolean;
+  price?: number;
+  isEnrolling?: boolean;
   onToggleFavorite: () => void;
   onContinueLearning: () => void;
+  onEnrollFree?: () => void;
+  onPaidClick?: () => void;
 }
 
 export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
   completedLessons,
   totalLessons,
   isFavorite,
+  isEnrolled,
+  price = 0,
+  isEnrolling = false,
   onToggleFavorite,
   onContinueLearning,
+  onEnrollFree,
+  onPaidClick,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
   const percentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+  const isPaid = price > 0;
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -29,78 +40,147 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Main Progress Card */}
-      <div className="bg-surface rounded-card p-6 border border-outline-subtle shadow-xs space-y-5">
-        <h2 className="text-base font-bold text-slateText-primary tracking-tight">
-          Your Progress
-        </h2>
+      {isEnrolled ? (
+        /* Enrolled User: Progress Ring & Continue */
+        <div className="bg-surface rounded-card p-6 border border-outline-subtle shadow-xs space-y-5">
+          <h2 className="text-base font-bold text-slateText-primary tracking-tight">
+            Progres Belajar Anda
+          </h2>
 
-        {/* Ring & Details */}
-        <div className="flex items-center gap-4">
-          <ProgressRing progress={percentage} size={76} strokeWidth={6} />
+          <div className="flex items-center gap-4">
+            <ProgressRing progress={percentage} size={76} strokeWidth={6} />
+
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-slateText-primary">
+                {completedLessons} dari {totalLessons} materi selesai
+              </p>
+              <p className="text-xs text-slateText-muted">
+                {percentage === 100
+                  ? '🎉 Selamat! Kursus telah Anda selesaikan'
+                  : 'Lanjutkan untuk menyelesaikan seluruh kurikulum!'}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <Button
+              variant="primary"
+              fullWidth
+              size="md"
+              onClick={onContinueLearning}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+              className="rounded-full shadow-purple-glow"
+            >
+              Lanjutkan Belajar
+            </Button>
+          </div>
+        </div>
+      ) : isPaid ? (
+        /* Unenrolled: Paid Class Card */
+        <div className="bg-surface rounded-card p-6 border border-purple-200/90 shadow-card space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-meta font-extrabold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full uppercase tracking-wider border border-purple-200">
+              Kelas Berbayar
+            </span>
+            <span className="text-2xl font-extrabold text-slateText-primary tracking-tight">
+              ${price}
+            </span>
+          </div>
 
           <div className="space-y-1">
-            <p className="text-sm font-bold text-slateText-primary">
-              {completedLessons} of {totalLessons} completed
+            <h3 className="text-sm font-bold text-slateText-primary">
+              Akses Penuh Seumur Hidup
+            </h3>
+            <p className="text-xs text-slateText-secondary leading-relaxed">
+              Buka seluruh materi video eksklusif, unduhan modul, dan sertifikat kelulusan.
             </p>
-            <p className="text-xs text-slateText-muted">
-              {percentage === 100
-                ? '🎉 Congratulations! Course completed'
-                : 'Keep going to achieve your certificate!'}
+          </div>
+
+          <div>
+            <Button
+              variant="primary"
+              fullWidth
+              size="md"
+              onClick={onPaidClick}
+              leftIcon={<CreditCard className="w-4 h-4" />}
+              className="rounded-full shadow-purple-glow bg-purple-600 hover:bg-purple-700"
+            >
+              Beli Kelas (${price})
+            </Button>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-purple-50/70 border border-purple-100 text-center">
+            <p className="text-micro font-medium text-purple-800">
+              ℹ️ Integrasi pembayaran sedang dalam pengembangan
             </p>
           </div>
         </div>
+      ) : (
+        /* Unenrolled: Free Class Card */
+        <div className="bg-surface rounded-card p-6 border border-emerald-200/90 shadow-card space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-meta font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-200">
+              100% Gratis
+            </span>
+            <span className="text-2xl font-extrabold text-emerald-600 tracking-tight">
+              GRATIS
+            </span>
+          </div>
 
-        {/* Continue Learning CTA Button */}
-        <div>
-          <Button
-            variant="primary"
-            fullWidth
-            size="md"
-            onClick={onContinueLearning}
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-            className="rounded-full shadow-purple-glow"
-          >
-            Continue Learning
-          </Button>
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-slateText-primary">
+              Mulai Belajar Sekarang
+            </h3>
+            <p className="text-xs text-slateText-secondary leading-relaxed">
+              Daftar 1-klik untuk membuka seluruh materi dan menyimpan riwayat progres belajarmu.
+            </p>
+          </div>
+
+          <div>
+            <Button
+              variant="primary"
+              fullWidth
+              size="md"
+              isLoading={isEnrolling}
+              onClick={onEnrollFree}
+              leftIcon={<Sparkles className="w-4 h-4" />}
+              className="rounded-full shadow-purple-glow"
+            >
+              Daftar Kelas Gratis
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Action Buttons: Favorite and Share */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Favorite Button */}
         <button
           type="button"
           onClick={onToggleFavorite}
           className={`flex items-center justify-center gap-2 py-3 px-4 rounded-full border text-xs font-bold transition-all active:scale-95 shadow-2xs ${
             isFavorite
-              ? 'bg-rose-50 border-rose-200 text-rose-500'
-              : 'bg-surface hover:bg-slate-50 border-slate-200 text-slateText-secondary hover:text-slateText-primary'
+              ? 'border-rose-200 bg-rose-50 text-rose-600'
+              : 'border-outline hover:border-slate-300 bg-surface hover:bg-slate-50 text-slateText-secondary'
           }`}
-          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <Heart
-            className={`w-4 h-4 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`}
-          />
-          <span>{isFavorite ? 'Favorited' : 'Favorite'}</span>
+          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+          <span>{isFavorite ? 'Favorit' : 'Simpan'}</span>
         </button>
 
-        {/* Share Button */}
         <button
           type="button"
           onClick={handleShare}
-          className="flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-surface hover:bg-slate-50 border border-slate-200 text-slateText-secondary hover:text-slateText-primary text-xs font-bold transition-all active:scale-95 shadow-2xs"
-          aria-label="Share course link"
+          className="flex items-center justify-center gap-2 py-3 px-4 rounded-full border border-outline hover:border-slate-300 bg-surface hover:bg-slate-50 text-slateText-secondary text-xs font-bold transition-all active:scale-95 shadow-2xs"
         >
           {isCopied ? (
             <>
               <Check className="w-4 h-4 text-emerald-500" />
-              <span className="text-emerald-600">Link Copied!</span>
+              <span className="text-emerald-600">Disalin!</span>
             </>
           ) : (
             <>
-              <Share2 className="w-4 h-4 text-slate-400" />
-              <span>Share</span>
+              <Share2 className="w-4 h-4" />
+              <span>Bagikan</span>
             </>
           )}
         </button>
