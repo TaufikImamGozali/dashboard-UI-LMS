@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, CircleHelp, LogOut, Settings, UserRound, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ChevronDown, CircleHelp, LogOut, Settings, UserRound, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../../hooks/useProfile';
 import { useTheme } from '../../hooks/useTheme';
@@ -16,22 +16,11 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onRequestLogout }) => 
   const navigate = useNavigate();
   const { profile } = useProfile();
   const { resolvedTheme, setTheme } = useTheme();
-  const { role, isAdmin, switchRole } = useAuth();
+  const { role, isAdmin } = useAuth();
 
   const go = (path: string, state?: object) => {
     setOpen(false);
     navigate(path, { state });
-  };
-
-  const handleToggleAdminRole = () => {
-    const nextRole = isAdmin ? 'student' : 'admin';
-    switchRole(nextRole);
-    setOpen(false);
-    if (nextRole === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/');
-    }
   };
 
   return (
@@ -148,16 +137,6 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({ onRequestLogout }) => 
             onChange={(checked) => setTheme(checked ? 'dark' : 'light')}
           />
         </div>
-
-        <button
-          role="menuitem"
-          type="button"
-          onClick={handleToggleAdminRole}
-          className="flex min-h-touch w-full items-center gap-3 rounded-xl px-3 text-xs font-semibold text-brand-600 hover:bg-brand-50 transition-colors"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          {isAdmin ? 'Switch to Student View' : 'Switch to Admin Role'}
-        </button>
 
         <button
           data-navigation

@@ -22,16 +22,42 @@ type TabId = 'overview' | 'courses' | 'users' | 'logs' | 'settings';
 export const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const {
+    currentAdminId,
+    // Users
     users,
-    settings,
-    auditLogs,
-    courses,
+    usersTotal,
+    usersPage,
+    usersTotalPages,
+    setUsersPage,
+    usersSearch,
+    setUsersSearch,
+    usersRoleFilter,
+    setUsersRoleFilter,
+    usersStatusFilter,
+    setUsersStatusFilter,
     updateUserRole,
     toggleUserStatus,
-    updateSettings,
-    toggleCoursePublish,
+    // Courses
+    courses,
+    fetchCourses,
     addCourse,
+    editCourse,
     deleteCourse,
+    toggleCoursePublish,
+    // Settings
+    settings,
+    updateSettings,
+    // Audit Logs
+    auditLogs,
+    auditLogsTotal,
+    auditLogsPage,
+    auditLogsTotalPages,
+    setAuditLogsPage,
+    auditLogsSearch,
+    setAuditLogsSearch,
+    // Stats & Overall
+    stats,
+    refreshAll,
   } = useAdmin();
 
   const { toasts, showToast, dismissToast } = useToast();
@@ -39,27 +65,27 @@ export const AdminPage: React.FC = () => {
   const tabs: { id: TabId; label: string; icon: React.ElementType; badge?: number }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'courses', label: 'Courses', icon: BookOpen, badge: courses.length },
-    { id: 'users', label: 'Users & Roles', icon: Users, badge: users.length },
-    { id: 'logs', label: 'Audit Logs', icon: ShieldAlert, badge: auditLogs.length },
+    { id: 'users', label: 'Users & Roles', icon: Users, badge: usersTotal || users.length },
+    { id: 'logs', label: 'Audit Logs', icon: ShieldAlert, badge: auditLogsTotal || auditLogs.length },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
-
-  const totalStudents = users.filter((u) => u.role === 'student').length * 480 + 240;
-  const totalMentors = users.filter((u) => u.role === 'mentor').length;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Admin Header */}
       <AdminHeader
         activeTab={activeTab}
-        onRefresh={() => showToast('Data refreshed successfully', 'info')}
+        onRefresh={async () => {
+          await refreshAll();
+          showToast('Data refreshed successfully from Supabase', 'info');
+        }}
       />
 
       {/* KPI Stats Cards */}
       <AdminStatsCards
-        totalStudents={totalStudents}
-        totalCourses={courses.length}
-        totalMentors={totalMentors || 3}
+        totalStudents={stats.totalStudents}
+        totalCourses={stats.totalCourses}
+        totalMentors={stats.totalMentors}
       />
 
       {/* Tab Navigation Pill Bar */}
@@ -107,39 +133,96 @@ export const AdminPage: React.FC = () => {
         {activeTab === 'courses' && (
           <AdminCoursesTab
             courses={courses}
-            onTogglePublish={(id) => {
-              toggleCoursePublish(id);
-              showToast('Course publish status updated', 'success');
+            onTogglePublish={async (id) => {
+              try {
+                await toggleCoursePublish(id);
+                showToast('Course publish status updated', 'success');
+              } catch (err: any) {
+                showToast(err?.message || 'Failed to update publish status', 'error');
+              }
             }}
-            onDeleteCourse={(id) => {
-              deleteCourse(id);
-              showToast('Course removed from catalog', 'info');
+            onDeleteCourse={async (id) => {
+              try {
+                const res = await deleteCourse(id);
+                if (res.success) {
+                  showToast('Course deleted permanently from catalog', 'info');
+                }
+                return res;
+              } catch (err: any) {
+                showToast(err?.message || 'Failed to delete course', 'error');
+                return { success: false, hasEnrollments: false, message: err?.message };
+              }
             }}
-            onAddCourse={(newC) => {
-              addCourse(newC);
-              showToast('New course created & published!', 'success');
+            onAddCourse={async (newC) => {
+              try {
+                await addCourse(newC);
+                showToast('New course created & published to Supabase!', 'success');
+              } catch (err: any) {
+                showToast(err?.message || 'Failed to create course', 'error');
+                throw err;
+              }
             }}
+            onEditCourse={async (id, data) => {
+              try {
+                await editCourse(id, data);
+                showToast('Course updated successfully!', 'success');
+              } catch (err: any) {
+                showToast(err?.message || 'Failed to update course', 'error');
+                throw err;
+              }
+            }}
+            onRefreshCourses={fetchCourses}
           />
         )}
 
         {activeTab === 'users' && (
           <AdminUsersTab
             users={users}
-            onUpdateRole={(id, role) => {
-              updateUserRole(id, role);
-              showToast(`User role updated to ${role}`, 'success');
+            currentAdminId={currentAdminId}
+            search={usersSearch}
+            onSearchChange={setUsersSearch}
+            roleFilter={usersRoleFilter}
+            onRoleFilterChange={setUsersRoleFilter}
+            statusFilter={usersStatusFilter}
+            onStatusFilterChange={setUsersStatusFilter}
+            page={usersPage}
+            totalPages={usersTotalPages}
+            totalUsers={usersTotal}
+            onPageChange={setUsersPage}
+            onUpdateRole={async (id, role) => {
+              try {
+                await updateUserRole(id, role);
+                showToast(`User role updated to ${role}`, 'success');
+              } catch (err: any) {
+                showToast(err?.message || 'Failed to update role', 'error');
+              }
             }}
-            onToggleStatus={(id) => {
-              toggleUserStatus(id);
-              showToast('Account status updated', 'info');
+            onToggleStatus={async (id) => {
+              try {
+                await toggleUserStatus(id);
+                showToast('Account status updated successfully', 'info');
+              } catch (err: any) {
+                showToast(err?.message || 'Failed to update status', 'error');
+              }
             }}
           />
         )}
 
-        {activeTab === 'logs' && <AdminAuditLogsTab logs={auditLogs} />}
+        {activeTab === 'logs' && (
+          <AdminAuditLogsTab
+            logs={auditLogs}
+            search={auditLogsSearch}
+            onSearchChange={setAuditLogsSearch}
+            page={auditLogsPage}
+            totalPages={auditLogsTotalPages}
+            totalLogs={auditLogsTotal}
+            onPageChange={setAuditLogsPage}
+          />
+        )}
 
         {activeTab === 'settings' && (
           <AdminSettingsTab
+            key={`${settings.platformName}-${settings.updatedAt}`}
             settings={settings}
             onSave={updateSettings}
             showToast={showToast}

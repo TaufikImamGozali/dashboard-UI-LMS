@@ -78,11 +78,28 @@ export const RegisterPage: React.FC = () => {
       setIsLoading(false);
 
       if (!res.success) {
-        setAuthError(res.error || 'Pendaftaran gagal. Periksa kembali informasi Anda.');
+        let errMessage = res.error || 'Pendaftaran gagal. Periksa kembali informasi Anda.';
+        const lower = errMessage.toLowerCase();
+        if (lower.includes('rate limit') || lower.includes('email rate limit exceeded')) {
+          errMessage =
+            'Batas pengiriman email Supabase terlampaui (maksimal 3-4 email per jam pada server gratis bawaan Supabase). Untuk kelancaran pengembangan/testing, matikan opsi "Confirm email" di Supabase Dashboard (Authentication > Providers > Email) agar registrasi instan tanpa limit email.';
+        } else if (lower.includes('already registered')) {
+          errMessage = 'Email ini sudah terdaftar. Silakan langsung login atau gunakan email lain.';
+        }
+        setAuthError(errMessage);
         return;
       }
 
-      sessionStorage.setItem('coursue_flash', 'Akun berhasil dibuat! Selamat datang di Coursue.');
+      if (res.emailConfirmationRequired) {
+        sessionStorage.setItem(
+          'coursue_flash',
+          `Akun untuk ${email} berhasil dibuat! Silakan cek email Anda untuk verifikasi, atau login dengan kata sandi Anda.`
+        );
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      sessionStorage.setItem('coursue_flash', `Selamat datang, ${fullName.trim()}! Akun Anda telah aktif.`);
       navigate('/', { replace: true });
     } catch {
       setIsLoading(false);
@@ -121,7 +138,7 @@ export const RegisterPage: React.FC = () => {
             name="name"
             type="text"
             label="Full Name"
-            placeholder="e.g. Jason Ranti"
+            placeholder="e.g. Alex Johnson"
             value={fullName}
             onChange={(e) => {
               setFullName(e.target.value);
@@ -138,7 +155,7 @@ export const RegisterPage: React.FC = () => {
             name="email"
             type="email"
             label="Email Address"
-            placeholder="jason.ranti@example.com"
+            placeholder="alex.johnson@example.com"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);

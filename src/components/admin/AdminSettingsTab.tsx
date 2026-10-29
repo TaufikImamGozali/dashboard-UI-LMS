@@ -20,17 +20,25 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
   const [allowRegistration, setAllowRegistration] = useState(settings.allowRegistration);
   const [maintenanceMode, setMaintenanceMode] = useState(settings.maintenanceMode);
   const [maxUploadSizeMb, setMaxUploadSizeMb] = useState(settings.maxUploadSizeMb);
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      platformName,
-      supportEmail,
-      allowRegistration,
-      maintenanceMode,
-      maxUploadSizeMb,
-    });
-    showToast('Platform settings saved successfully!', 'success');
+    setSaving(true);
+    try {
+      await onSave({
+        platformName,
+        supportEmail,
+        allowRegistration,
+        maintenanceMode,
+        maxUploadSizeMb,
+      });
+      showToast('Platform settings saved successfully to Supabase!', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to update settings', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -158,10 +166,11 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
       <div className="flex justify-end gap-3 pt-2">
         <button
           type="submit"
-          className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-purple-glow transition-all"
+          disabled={saving}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-purple-glow transition-all disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
-          <span>Save Changes</span>
+          <span>{saving ? 'Saving...' : 'Save Changes'}</span>
         </button>
       </div>
     </form>

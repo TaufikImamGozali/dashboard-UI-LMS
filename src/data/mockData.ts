@@ -1,10 +1,10 @@
 import type { Friend, ProgressSummary, Course, Lesson, Mentor, StatisticDataPoint } from '../types';
 
 export const currentUser = {
-  name: 'Jason Ranti',
+  name: 'Student User',
   role: 'Student',
   avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-  completionPercentage: 32,
+  completionPercentage: 0,
 };
 
 export const mockFriends: Friend[] = [

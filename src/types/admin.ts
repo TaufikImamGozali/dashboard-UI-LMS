@@ -7,6 +7,7 @@ export interface AdminUser {
   role: UserRole;
   avatar: string;
   status: 'active' | 'suspended';
+  isActive?: boolean;
   joinedDate: string;
   coursesEnrolled?: number;
   coursesCreated?: number;
@@ -37,8 +38,11 @@ export interface PlatformSettings {
 export interface AdminCourse {
   id: string;
   title: string;
-  category: 'frontend' | 'design' | 'branding';
+  slug?: string;
+  description?: string | null;
+  category: 'frontend' | 'design' | 'branding' | 'mobile' | 'devops' | 'general';
   categoryLabel: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
   instructor: string;
   instructorAvatar: string;
   studentsCount: number;
@@ -47,4 +51,19 @@ export interface AdminCourse {
   price: number;
   createdAt: string;
   thumbnail: string;
+  lessonsCount?: number;
+}
+
+export interface AdminLesson {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string | null;
+  youtubeUrl: string | null;
+  youtubeVideoId: string | null;
+  durationSeconds: number;
+  position: number;
+  isPreview: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

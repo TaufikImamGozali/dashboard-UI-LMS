@@ -169,6 +169,9 @@ export interface Database {
           email: string;
           avatar: string;
           role: 'student' | 'mentor' | 'admin';
+          is_active: boolean;
+          phone: string | null;
+          bio: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -178,6 +181,9 @@ export interface Database {
           email: string;
           avatar?: string;
           role?: 'student' | 'mentor' | 'admin';
+          is_active?: boolean;
+          phone?: string | null;
+          bio?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -187,7 +193,71 @@ export interface Database {
           email?: string;
           avatar?: string;
           role?: 'student' | 'mentor' | 'admin';
+          is_active?: boolean;
+          phone?: string | null;
+          bio?: string | null;
           created_at?: string;
+          updated_at?: string;
+        };
+      };
+      audit_logs: {
+        Row: {
+          id: string;
+          actor_id: string | null;
+          action: string;
+          entity_type: string;
+          entity_id: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id?: string | null;
+          action: string;
+          entity_type: string;
+          entity_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_id?: string | null;
+          action?: string;
+          entity_type?: string;
+          entity_id?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+      };
+      platform_settings: {
+        Row: {
+          id: boolean;
+          platform_name: string;
+          support_email: string;
+          allow_registration: boolean;
+          maintenance_mode: boolean;
+          max_upload_size_mb: number;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: boolean;
+          platform_name?: string;
+          support_email?: string;
+          allow_registration?: boolean;
+          maintenance_mode?: boolean;
+          max_upload_size_mb?: number;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: boolean;
+          platform_name?: string;
+          support_email?: string;
+          allow_registration?: boolean;
+          maintenance_mode?: boolean;
+          max_upload_size_mb?: number;
+          updated_by?: string | null;
           updated_at?: string;
         };
       };
@@ -241,6 +311,13 @@ export interface Database {
           status: string;
         }[];
       };
+      reorder_lessons: {
+        Args: {
+          p_course_id: string;
+          p_lesson_ids: string[];
+        };
+        Returns: void;
+      };
     };
   };
 }
@@ -263,3 +340,9 @@ export type DbLessonProgressUpdate = Database['public']['Tables']['lesson_progre
 
 export type CourseOutlineItem = Database['public']['Views']['course_outline']['Row'];
 export type UserCourseProgress = Database['public']['Views']['user_course_progress']['Row'];
+
+export type DbAuditLog = Database['public']['Tables']['audit_logs']['Row'];
+export type DbAuditLogInsert = Database['public']['Tables']['audit_logs']['Insert'];
+
+export type DbPlatformSettings = Database['public']['Tables']['platform_settings']['Row'];
+export type DbPlatformSettingsUpdate = Database['public']['Tables']['platform_settings']['Update'];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ShieldAlert, ArrowLeft, KeyRound } from 'lucide-react';
+import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ interface AdminRouteProps {
 export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, switchRole } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -30,19 +30,6 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
             Your current account does not have administrator privileges to view this section.
           </p>
           <div className="space-y-3">
-            {import.meta.env.DEV && (
-              <button
-                type="button"
-                onClick={() => {
-                  switchRole('admin');
-                  navigate('/admin');
-                }}
-                className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-purple-glow transition-all"
-              >
-                <KeyRound className="w-4 h-4" />
-                Switch to Demo Admin Role (Dev Only)
-              </button>
-            )}
             <button
               type="button"
               onClick={() => navigate('/')}

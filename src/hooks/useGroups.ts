@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { currentUser } from '../data/mockData';
+import { profileService } from '../services/profileService';
 import { mockGroups } from '../data/groups';
 import type { Comment, Group, Member, NewGroupForm, Post } from '../types/group';
 
@@ -8,13 +8,16 @@ const STORAGE_KEY = 'coursue_groups_v1';
 const createId = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const currentMember = (role: Member['role'] = 'Member'): Member => ({
-  id: 'current-user',
-  name: currentUser.name,
-  avatar: currentUser.avatar,
-  role,
-  contributions: 0,
-});
+const currentMember = (role: Member['role'] = 'Member'): Member => {
+  const localProfile = profileService.getLocalProfile();
+  return {
+    id: 'current-user',
+    name: localProfile.name || 'Student User',
+    avatar: localProfile.avatar,
+    role,
+    contributions: 0,
+  };
+};
 
 export function useGroups() {
   const [groups, setGroups] = useState<Group[]>(() => {

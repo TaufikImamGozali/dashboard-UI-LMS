@@ -1,222 +1,352 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { AdminUser, AdminAuditLog, PlatformSettings, AdminCourse, UserRole } from '../types/admin';
-import {
-  initialAdminUsers,
-  initialPlatformSettings,
-  initialAdminAuditLogs,
-  initialAdminCourses,
-} from '../data/adminMockData';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type {
+  AdminUser,
+  AdminAuditLog,
+  PlatformSettings,
+  AdminCourse,
+  UserRole,
+} from '../types/admin';
+import { adminService } from '../services/adminService';
+import { supabase } from '../lib/supabase';
 
-const STORAGE_KEYS = {
-  USERS: 'coursue_admin_users_v1',
-  SETTINGS: 'coursue_admin_settings_v1',
-  LOGS: 'coursue_admin_logs_v1',
-  COURSES: 'coursue_admin_courses_v1',
-};
-
-const getStored = <T>(key: string, fallback: T): T => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
-  } catch {
-    return fallback;
-  }
+const defaultSettings: PlatformSettings = {
+  platformName: 'Coursue',
+  supportEmail: 'support@coursue.test',
+  allowRegistration: true,
+  maintenanceMode: false,
+  maxUploadSizeMb: 10,
+  updatedBy: 'Admin',
+  updatedAt: new Date().toLocaleDateString('en-GB'),
 };
 
 export const useAdmin = () => {
-  const [users, setUsers] = useState<AdminUser[]>(() =>
-    getStored(STORAGE_KEYS.USERS, initialAdminUsers)
-  );
-  const [settings, setSettings] = useState<PlatformSettings>(() =>
-    getStored(STORAGE_KEYS.SETTINGS, initialPlatformSettings)
-  );
-  const [auditLogs, setAuditLogs] = useState<AdminAuditLog[]>(() =>
-    getStored(STORAGE_KEYS.LOGS, initialAdminAuditLogs)
-  );
-  const [courses, setCourses] = useState<AdminCourse[]>(() =>
-    getStored(STORAGE_KEYS.COURSES, initialAdminCourses)
-  );
+  const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
 
-  // Sync to localStorage
+  // Data states
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersTotalPages, setUsersTotalPages] = useState(1);
+  const [usersSearch, setUsersSearch] = useState('');
+  const [usersRoleFilter, setUsersRoleFilter] = useState<'all' | UserRole>('all');
+  const [usersStatusFilter, setUsersStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
+
+  const [courses, setCourses] = useState<AdminCourse[]>([]);
+  const [coursesSearch, setCoursesSearch] = useState('');
+  const [coursesCategoryFilter, setCoursesCategoryFilter] = useState('all');
+  const [coursesStatusFilter, setCoursesStatusFilter] = useState('all');
+
+  const [settings, setSettings] = useState<PlatformSettings>(defaultSettings);
+
+  const [auditLogs, setAuditLogs] = useState<AdminAuditLog[]>([]);
+  const [auditLogsTotal, setAuditLogsTotal] = useState(0);
+  const [auditLogsPage, setAuditLogsPage] = useState(1);
+  const [auditLogsTotalPages, setAuditLogsTotalPages] = useState(1);
+  const [auditLogsSearch, setAuditLogsSearch] = useState('');
+
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalMentors: 0,
+    totalCourses: 0,
+    publishedCourses: 0,
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const isMounted = useRef(true);
+
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-  }, [users]);
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
+  // Fetch current user id
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  }, [settings]);
+    supabase.auth.getSession().then(({ data }) => {
+      if (isMounted.current && data.session?.user) {
+        setCurrentAdminId(data.session.user.id);
+      }
+    });
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(auditLogs));
-  }, [auditLogs]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.COURSES, JSON.stringify(courses));
-  }, [courses]);
-
-  // Helper to record an audit log
-  const recordLog = useCallback(
-    (action: string, entityType: string, entityId: string, metadata: Record<string, unknown> = {}) => {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
+  // ============================================================================
+  // LOAD USERS
+  // ============================================================================
+  const fetchUsers = useCallback(async () => {
+    try {
+      const res = await adminService.getUsers({
+        search: usersSearch,
+        role: usersRoleFilter,
+        status: usersStatusFilter,
+        page: usersPage,
+        limit: 10,
       });
-      const timeStr = now.toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
+      if (isMounted.current) {
+        setUsers(res.users);
+        setUsersTotal(res.total);
+        setUsersTotalPages(res.totalPages);
+      }
+    } catch (err) {
+      console.error('Failed to load users:', err);
+    }
+  }, [usersSearch, usersRoleFilter, usersStatusFilter, usersPage]);
+
+  useEffect(() => {
+    void (async () => {
+      await fetchUsers();
+    })();
+  }, [fetchUsers]);
+
+  // ============================================================================
+  // LOAD COURSES
+  // ============================================================================
+  const fetchCourses = useCallback(async () => {
+    try {
+      const list = await adminService.getCourses({
+        search: coursesSearch,
+        category: coursesCategoryFilter,
+        status: coursesStatusFilter,
       });
+      if (isMounted.current) {
+        setCourses(list);
+      }
+    } catch (err) {
+      console.error('Failed to load courses:', err);
+    }
+  }, [coursesSearch, coursesCategoryFilter, coursesStatusFilter]);
 
-      const newLog: AdminAuditLog = {
-        id: `log-${Date.now()}`,
-        actorId: 'u-admin-1',
-        actorName: 'Sarah Connor',
-        actorRole: 'admin',
-        action,
-        entityType,
-        entityId,
-        metadata,
-        createdAt: `${dateStr}, ${timeStr}`,
-      };
+  useEffect(() => {
+    void (async () => {
+      await fetchCourses();
+    })();
+  }, [fetchCourses]);
 
-      setAuditLogs((prev) => [newLog, ...prev]);
-    },
-    []
-  );
+  // ============================================================================
+  // LOAD SETTINGS
+  // ============================================================================
+  const fetchSettings = useCallback(async () => {
+    try {
+      const s = await adminService.getSettings();
+      if (isMounted.current) {
+        setSettings(s);
+      }
+    } catch (err) {
+      console.error('Failed to load platform settings:', err);
+    }
+  }, []);
 
-  // User Actions
+  useEffect(() => {
+    void (async () => {
+      await fetchSettings();
+    })();
+  }, [fetchSettings]);
+
+  // ============================================================================
+  // LOAD AUDIT LOGS
+  // ============================================================================
+  const fetchAuditLogs = useCallback(async () => {
+    try {
+      const res = await adminService.getAuditLogs({
+        search: auditLogsSearch,
+        page: auditLogsPage,
+        limit: 15,
+      });
+      if (isMounted.current) {
+        setAuditLogs(res.logs);
+        setAuditLogsTotal(res.total);
+        setAuditLogsTotalPages(res.totalPages);
+      }
+    } catch (err) {
+      console.error('Failed to load audit logs:', err);
+    }
+  }, [auditLogsSearch, auditLogsPage]);
+
+  useEffect(() => {
+    void (async () => {
+      await fetchAuditLogs();
+    })();
+  }, [fetchAuditLogs]);
+
+  // ============================================================================
+  // LOAD STATS
+  // ============================================================================
+  const fetchStats = useCallback(async () => {
+    try {
+      const st = await adminService.getStats();
+      if (isMounted.current) {
+        setStats(st);
+      }
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      await fetchStats();
+    })();
+  }, [fetchStats]);
+
+  // Refresh all
+  const refreshAll = useCallback(async () => {
+    setIsLoading(true);
+    await Promise.all([
+      fetchUsers(),
+      fetchCourses(),
+      fetchSettings(),
+      fetchAuditLogs(),
+      fetchStats(),
+    ]);
+    if (isMounted.current) {
+      setIsLoading(false);
+    }
+  }, [fetchUsers, fetchCourses, fetchSettings, fetchAuditLogs, fetchStats]);
+
+  // ============================================================================
+  // MUTATION HANDLERS
+  // ============================================================================
   const updateUserRole = useCallback(
-    (userId: string, newRole: UserRole) => {
-      setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id === userId) {
-            recordLog('USER_ROLE_CHANGE', 'profiles', u.id, {
-              userName: u.name,
-              from: u.role,
-              to: newRole,
-            });
-            return { ...u, role: newRole };
-          }
-          return u;
-        })
-      );
+    async (userId: string, newRole: UserRole) => {
+      await adminService.updateUserRole(userId, newRole, currentAdminId || undefined);
+      await Promise.all([fetchUsers(), fetchAuditLogs(), fetchStats()]);
     },
-    [recordLog]
+    [currentAdminId, fetchUsers, fetchAuditLogs, fetchStats]
   );
 
   const toggleUserStatus = useCallback(
-    (userId: string) => {
-      setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id === userId) {
-            const nextStatus = u.status === 'active' ? 'suspended' : 'active';
-            recordLog(
-              nextStatus === 'suspended' ? 'USER_SUSPEND' : 'USER_ACTIVATE',
-              'profiles',
-              u.id,
-              { userName: u.name, newStatus: nextStatus }
-            );
-            return { ...u, status: nextStatus };
-          }
-          return u;
-        })
+    async (userId: string) => {
+      const targetUser = users.find((u) => u.id === userId);
+      if (!targetUser) return;
+      await adminService.toggleUserStatus(
+        userId,
+        targetUser.status,
+        currentAdminId || undefined
       );
+      await Promise.all([fetchUsers(), fetchAuditLogs(), fetchStats()]);
     },
-    [recordLog]
+    [users, currentAdminId, fetchUsers, fetchAuditLogs, fetchStats]
   );
 
-  // Settings Actions
   const updateSettings = useCallback(
-    (newSettings: Partial<PlatformSettings>) => {
-      setSettings((prev) => {
-        const updated = {
-          ...prev,
-          ...newSettings,
-          updatedAt: new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-        };
-        recordLog('PLATFORM_SETTINGS_UPDATE', 'platform_settings', 'singleton', {
-          changes: Object.keys(newSettings),
-        });
-        return updated;
-      });
+    async (newSettings: Partial<PlatformSettings>) => {
+      const updated = await adminService.updateSettings(newSettings);
+      if (isMounted.current) {
+        setSettings(updated);
+      }
+      await fetchAuditLogs();
     },
-    [recordLog]
+    [fetchAuditLogs]
   );
 
-  // Course Actions
   const toggleCoursePublish = useCallback(
-    (courseId: string) => {
-      setCourses((prev) =>
-        prev.map((c) => {
-          if (c.id === courseId) {
-            const nextStatus = c.status === 'published' ? 'draft' : 'published';
-            recordLog(
-              nextStatus === 'published' ? 'COURSE_PUBLISH' : 'COURSE_UNPUBLISH',
-              'courses',
-              c.id,
-              { title: c.title, newStatus: nextStatus }
-            );
-            return { ...c, status: nextStatus };
-          }
-          return c;
-        })
-      );
+    async (courseId: string) => {
+      const target = courses.find((c) => c.id === courseId);
+      if (!target) return;
+      await adminService.toggleCoursePublish(courseId, target.status);
+      await Promise.all([fetchCourses(), fetchAuditLogs(), fetchStats()]);
     },
-    [recordLog]
+    [courses, fetchCourses, fetchAuditLogs, fetchStats]
   );
 
   const addCourse = useCallback(
-    (newCourse: Omit<AdminCourse, 'id' | 'createdAt' | 'studentsCount' | 'rating'>) => {
-      const created: AdminCourse = {
-        ...newCourse,
-        id: `c-adm-${Date.now()}`,
-        studentsCount: 0,
-        rating: 5.0,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setCourses((prev) => [created, ...prev]);
-      recordLog('COURSE_CREATE', 'courses', created.id, {
-        title: created.title,
-        category: created.category,
-      });
+    async (newCourse: {
+      title: string;
+      category: 'frontend' | 'design' | 'branding' | 'mobile' | 'devops' | 'general';
+      level?: 'beginner' | 'intermediate' | 'advanced';
+      thumbnail_url?: string;
+      price: number;
+      status: 'draft' | 'published';
+      description?: string;
+    }) => {
+      const created = await adminService.createCourse(newCourse);
+      await Promise.all([fetchCourses(), fetchAuditLogs(), fetchStats()]);
       return created;
     },
-    [recordLog]
+    [fetchCourses, fetchAuditLogs, fetchStats]
+  );
+
+  const editCourse = useCallback(
+    async (
+      courseId: string,
+      data: {
+        title?: string;
+        description?: string | null;
+        category?: 'frontend' | 'design' | 'branding' | 'mobile' | 'devops' | 'general';
+        level?: 'beginner' | 'intermediate' | 'advanced';
+        thumbnail_url?: string | null;
+        price?: number;
+        status?: 'draft' | 'published';
+      }
+    ) => {
+      const updated = await adminService.updateCourse(courseId, data);
+      await Promise.all([fetchCourses(), fetchAuditLogs(), fetchStats()]);
+      return updated;
+    },
+    [fetchCourses, fetchAuditLogs, fetchStats]
   );
 
   const deleteCourse = useCallback(
-    (courseId: string) => {
-      setCourses((prev) => {
-        const target = prev.find((c) => c.id === courseId);
-        if (target) {
-          recordLog('COURSE_DELETE', 'courses', courseId, {
-            title: target.title,
-          });
-        }
-        return prev.filter((c) => c.id !== courseId);
-      });
+    async (courseId: string) => {
+      const result = await adminService.deleteCourse(courseId);
+      if (result.success) {
+        await Promise.all([fetchCourses(), fetchAuditLogs(), fetchStats()]);
+      }
+      return result;
     },
-    [recordLog]
+    [fetchCourses, fetchAuditLogs, fetchStats]
   );
 
   return {
+    currentAdminId,
+    isLoading,
+    // Users
     users,
-    settings,
-    auditLogs,
-    courses,
+    usersTotal,
+    usersPage,
+    usersTotalPages,
+    setUsersPage,
+    usersSearch,
+    setUsersSearch,
+    usersRoleFilter,
+    setUsersRoleFilter,
+    usersStatusFilter,
+    setUsersStatusFilter,
+    fetchUsers,
     updateUserRole,
     toggleUserStatus,
-    updateSettings,
-    toggleCoursePublish,
+    // Courses
+    courses,
+    coursesSearch,
+    setCoursesSearch,
+    coursesCategoryFilter,
+    setCoursesCategoryFilter,
+    coursesStatusFilter,
+    setCoursesStatusFilter,
+    fetchCourses,
     addCourse,
+    editCourse,
     deleteCourse,
-    recordLog,
+    toggleCoursePublish,
+    // Settings
+    settings,
+    updateSettings,
+    fetchSettings,
+    // Audit Logs
+    auditLogs,
+    auditLogsTotal,
+    auditLogsPage,
+    auditLogsTotalPages,
+    setAuditLogsPage,
+    auditLogsSearch,
+    setAuditLogsSearch,
+    fetchAuditLogs,
+    // Stats & Overall
+    stats,
+    refreshAll,
   };
 };

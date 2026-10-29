@@ -16,13 +16,21 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       }
 
       if (session?.user) {
-        const userRole = await authService.fetchProfileRole(
+        const profileStatus = await authService.fetchUserProfileStatus(
           session.user.id,
           session.user.email
         );
-        authService.syncSession(true, userRole);
+
+        if (!profileStatus.isActive) {
+          await authService.logout();
+          setAuthenticated(false);
+          setRoleState('student');
+          return;
+        }
+
+        authService.syncSession(true, profileStatus.role);
         setAuthenticated(true);
-        setRoleState(userRole);
+        setRoleState(profileStatus.role);
       } else if (event === 'SIGNED_OUT') {
         authService.clearSession();
         setAuthenticated(false);
@@ -52,7 +60,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   const signUp = useCallback(async (name: string, email: string, password: string) => {
     const res = await authService.signUp(name, email, password);
-    if (res.success) {
+    if (res.success && !res.emailConfirmationRequired) {
       setAuthenticated(true);
       setRoleState('student');
     }
@@ -70,11 +78,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setRoleState('student');
   }, []);
 
-  const switchRole = useCallback((newRole: UserRole) => {
-    authService.setRole(newRole);
-    setRoleState(newRole);
-  }, []);
-
   const isAdmin = role === 'admin';
 
   const value = useMemo(
@@ -87,9 +90,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       signUp,
       signInWithGoogle,
       logout,
-      switchRole,
     }),
-    [isAuthenticated, role, isAdmin, login, signIn, signUp, signInWithGoogle, logout, switchRole]
+    [isAuthenticated, role, isAdmin, login, signIn, signUp, signInWithGoogle, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
