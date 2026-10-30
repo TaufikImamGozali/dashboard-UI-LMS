@@ -1,4 +1,4 @@
-import type { Friend, ProgressSummary, Course, Lesson, Mentor, StatisticDataPoint } from '../types';
+import type { ProgressSummary, Course, Lesson, StatisticDataPoint } from '../types';
 
 export const currentUser = {
   name: 'Student User',
@@ -6,30 +6,6 @@ export const currentUser = {
   avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
   completionPercentage: 0,
 };
-
-export const mockFriends: Friend[] = [
-  {
-    id: 'f1',
-    name: 'Bagas Mahpie',
-    avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&q=80',
-    status: 'Friend',
-    isOnline: true,
-  },
-  {
-    id: 'f2',
-    name: 'Sir Dandy',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-    status: 'Old Friend',
-    isOnline: false,
-  },
-  {
-    id: 'f3',
-    name: 'Jhon Tosan',
-    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&q=80',
-    status: 'Friend',
-    isOnline: true,
-  },
-];
 
 export const mockProgressSummaries: ProgressSummary[] = [
   {
@@ -349,33 +325,6 @@ export const mockLessons: Lesson[] = [
     type: 'branding',
     typeLabel: 'BRANDING',
     description: 'Brand Guidelines & Vector Identity Systems',
-  },
-];
-
-export const mockMentors: Mentor[] = [
-  {
-    id: 'm1',
-    name: 'Padhang Satrio',
-    role: 'Mentor',
-    avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=150&q=80',
-    isOnline: true,
-    isFollowing: false,
-  },
-  {
-    id: 'm2',
-    name: 'Zakir Horizontal',
-    role: 'Mentor',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80',
-    isOnline: true,
-    isFollowing: false,
-  },
-  {
-    id: 'm3',
-    name: 'Leonardo Samsul',
-    role: 'Mentor',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-    isOnline: true,
-    isFollowing: false,
   },
 ];
 

@@ -11,6 +11,25 @@ import type {
 } from '../types';
 import type { DbCourse, DbLesson, UserCourseProgress } from '../types/database';
 
+export interface ExploreCourse {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  thumbnail: string;
+  category: CategoryType;
+  categoryLabel: string;
+  level: CourseLevel;
+  price: number;
+  lessonsCount: number;
+  isEnrolled: boolean;
+  mentor: {
+    name: string;
+    avatar: string;
+    role: string;
+  };
+}
+
 export const formatDurationFromSeconds = (seconds: number): string => {
   if (!seconds || seconds <= 0) return '00:00';
   const hrs = Math.floor(seconds / 3600);
@@ -633,6 +652,103 @@ export const courseService = {
     } catch (err) {
       console.error('Error marking lesson complete:', err);
       return { success: false, error: 'Failed to update lesson completion' };
+    }
+  },
+
+  // 10. Get all published courses for student Explore page with lesson count and enrollment state
+  getExploreCourses: async (): Promise<ExploreCourse[]> => {
+    try {
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select(`
+          id,
+          title,
+          slug,
+          description,
+          thumbnail_url,
+          category,
+          level,
+          price,
+          status,
+          created_at,
+          updated_at,
+          mentor_id,
+          profiles:mentor_id (
+            id,
+            name,
+            avatar,
+            role
+          )
+        `)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (error || !courses) {
+        console.error('Error fetching explore courses:', error?.message);
+        return [];
+      }
+
+      // Fetch user session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+
+      // Fetch active enrollments
+      const enrolledSet = new Set<string>();
+      if (userId) {
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('user_id', userId)
+          .eq('status', 'active');
+
+        if (enrollments) {
+          enrollments.forEach((e) => enrolledSet.add(e.course_id));
+        }
+      }
+
+      // Fetch lesson counts from course_outline
+      const lessonCountMap: Record<string, number> = {};
+      try {
+        const { data: outline } = await supabase
+          .from('course_outline')
+          .select('course_id');
+
+        if (outline) {
+          outline.forEach((item) => {
+            lessonCountMap[item.course_id] = (lessonCountMap[item.course_id] || 0) + 1;
+          });
+        }
+      } catch {
+        // Outline query fallback
+      }
+
+      return (courses as any[]).map((c) => ({
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        description: c.description || '',
+        thumbnail:
+          c.thumbnail_url ||
+          'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+        category: c.category as CategoryType,
+        categoryLabel: getCategoryLabel(c.category),
+        level: normalizeLevel(c.level),
+        price: Number(c.price) || 0,
+        lessonsCount: lessonCountMap[c.id] || 0,
+        isEnrolled: enrolledSet.has(c.id),
+        mentor: {
+          name: c.profiles?.name || 'Coursue Mentor',
+          avatar:
+            c.profiles?.avatar ||
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+              c.profiles?.name || 'Mentor'
+            )}`,
+          role: c.profiles?.role === 'admin' ? 'Administrator' : 'Lead Instructor',
+        },
+      }));
+    } catch (err) {
+      console.error('Failed to get explore courses:', err);
+      return [];
     }
   },
 };

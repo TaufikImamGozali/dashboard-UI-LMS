@@ -1,9 +1,6 @@
 import React from 'react';
-import { Search, Mail, Menu } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Menu } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
-import { useChat } from '../hooks/useChat';
-import { NotificationBell } from './notifications/NotificationBell';
 import { ProfileMenu } from './profile/ProfileMenu';
 
 interface TopbarProps {
@@ -19,9 +16,6 @@ export const Topbar: React.FC<TopbarProps> = ({
   onOpenMobileSidebar,
   onRequestLogout,
 }) => {
-  const navigate = useNavigate();
-  const { conversations } = useChat();
-  const unreadMessages = conversations.reduce((total, item) => total + item.unreadCount, 0);
   return (
     <header className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 py-4 px-6 md:px-8 border-b border-outline-subtle">
       {/* Left: Mobile hamburger + Pill Search Bar */}
@@ -60,23 +54,9 @@ export const Topbar: React.FC<TopbarProps> = ({
         </div>
       </div>
 
-      {/* Right: Notification Icons + Divider + User Profile */}
+      {/* Right: Theme Toggle + Divider + User Profile */}
       <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0">
         <ThemeToggle />
-        {/* Mail Icon Button */}
-        <button
-          type="button"
-          data-navigation
-          onClick={() => navigate('/inbox')}
-          title="Messages"
-          className="relative w-10 h-10 rounded-full bg-surface hover:bg-surface-muted border border-outline flex items-center justify-center text-slateText-secondary hover:text-brand-500 transition-colors shadow-2xs"
-          aria-label={`Messages, ${unreadMessages} unread`}
-        >
-          <Mail className="w-4 h-4 stroke-[2]" />
-          {unreadMessages > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1 text-micro font-extrabold text-white ring-2 ring-surface">{unreadMessages > 9 ? '9+' : unreadMessages}</span>}
-        </button>
-
-        <NotificationBell />
 
         {/* Vertical divider */}
         <div className="h-7 w-px bg-outline mx-1 hidden sm:block" />

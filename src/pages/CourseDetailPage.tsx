@@ -14,10 +14,8 @@ import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
-import { mockFriends } from '../data/mockData';
 import type { CourseDetail, CurriculumLesson, Course } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { useChat } from '../hooks/useChat';
 import { courseService } from '../services/courseService';
 
 const firstAvailableLesson = (course: CourseDetail | null): CurriculumLesson | null => {
@@ -33,7 +31,6 @@ export const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { conversations } = useChat();
   const { toasts, showToast, dismissToast } = useToast();
 
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
@@ -46,8 +43,6 @@ export const CourseDetailPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
-
-  const unreadMessages = conversations.reduce((total, item) => total + item.unreadCount, 0);
 
   // Load course details from Supabase on mount or id change
   useEffect(() => {
@@ -297,11 +292,9 @@ export const CourseDetailPage: React.FC = () => {
         <Sidebar
           currentPath="/lesson"
           onNavigate={(path) => navigate(path)}
-          friends={mockFriends}
           isOpenMobile={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
           onLogout={() => setLogoutOpen(true)}
-          unreadMessages={unreadMessages}
         />
 
         {/* Content Area */}

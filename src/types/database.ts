@@ -261,6 +261,38 @@ export interface Database {
           updated_at?: string;
         };
       };
+      announcements: {
+        Row: {
+          id: string;
+          title: string;
+          body: string;
+          course_id: string | null;
+          author_id: string;
+          is_published: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body: string;
+          course_id?: string | null;
+          author_id: string;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          body?: string;
+          course_id?: string | null;
+          author_id?: string;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       course_outline: {
@@ -346,3 +378,7 @@ export type DbAuditLogInsert = Database['public']['Tables']['audit_logs']['Inser
 
 export type DbPlatformSettings = Database['public']['Tables']['platform_settings']['Row'];
 export type DbPlatformSettingsUpdate = Database['public']['Tables']['platform_settings']['Update'];
+
+export type DbAnnouncement = Database['public']['Tables']['announcements']['Row'];
+export type DbAnnouncementInsert = Database['public']['Tables']['announcements']['Insert'];
+export type DbAnnouncementUpdate = Database['public']['Tables']['announcements']['Update'];

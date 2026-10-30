@@ -6,14 +6,6 @@ export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started';
 export type SortOption = 'newest' | 'popular' | 'rating' | 'progress';
 export type ViewMode = 'grid' | 'list';
 
-export interface Friend {
-  id: string;
-  name: string;
-  avatar: string;
-  status: 'Friend' | 'Old Friend';
-  isOnline?: boolean;
-}
-
 export interface ProgressSummary {
   id: string;
   category: CategoryType;
@@ -57,15 +49,6 @@ export interface Lesson {
   description: string;
   courseId?: string;
   title?: string;
-}
-
-export interface Mentor {
-  id: string;
-  name: string;
-  role: string;
-  avatar: string;
-  isOnline?: boolean;
-  isFollowing: boolean;
 }
 
 export interface StatisticDataPoint {
