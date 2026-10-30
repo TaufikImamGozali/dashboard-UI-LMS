@@ -83,6 +83,9 @@ export const RegisterPage: React.FC = () => {
         if (lower.includes('rate limit') || lower.includes('email rate limit exceeded')) {
           errMessage =
             'Batas pengiriman email Supabase terlampaui (maksimal 3-4 email per jam pada server gratis bawaan Supabase). Untuk kelancaran pengembangan/testing, matikan opsi "Confirm email" di Supabase Dashboard (Authentication > Providers > Email) agar registrasi instan tanpa limit email.';
+        } else if (lower.includes('is invalid') || (lower.includes('invalid') && lower.includes('email'))) {
+          errMessage =
+            'Alamat email ditolak oleh server Supabase (terdeteksi sebagai email fiktif/tidak dapat menerima email). Gunakan email asli Anda, atau matikan opsi "Confirm email" di Supabase Dashboard (Authentication > Providers > Email) agar bisa mendaftar bebas tanpa verifikasi email.';
         } else if (lower.includes('already registered')) {
           errMessage = 'Email ini sudah terdaftar. Silakan langsung login atau gunakan email lain.';
         }
