@@ -169,6 +169,21 @@ export const authService = {
     };
   },
 
+  // Resend Sign-Up Confirmation Email
+  resendConfirmationEmail: async (email: string) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: cleanEmail,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  },
+
   // Real Supabase OAuth Sign In (Google)
   signInWithGoogle: async () => {
     const redirectTo = `${window.location.origin}/`;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, Shield, User, Sparkles, AlertCircle } from 'lucide-react';
+import { Mail, Shield, User, Sparkles, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { TextField } from '../components/ui/TextField';
@@ -35,6 +35,30 @@ export const LoginPage: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   const [authError, setAuthError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const isEmailUnconfirmed =
+    authError.toLowerCase().includes('belum dikonfirmasi') ||
+    authError.toLowerCase().includes('not confirmed');
+
+  const handleResendLoginConfirmation = async () => {
+    if (!email.trim() || isResending) return;
+    setIsResending(true);
+    setResendStatus('idle');
+    try {
+      const res = await authService.resendConfirmationEmail(email.trim());
+      if (res.success) {
+        setResendStatus('success');
+      } else {
+        setResendStatus('error');
+      }
+    } catch {
+      setResendStatus('error');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   // Quick preset helper - only available in development
   const handleSelectPreset = (role: 'student' | 'admin') => {
@@ -152,7 +176,53 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* Real-time Auth Error Banner */}
-          {authError && (
+          {isEmailUnconfirmed ? (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-300 dark:border-amber-700/60 text-slateText-primary space-y-3 animate-scale-in text-left">
+              <div className="flex items-start gap-2.5">
+                <Mail className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-sm text-amber-800 dark:text-amber-300">
+                    Konfirmasi Email Diperlukan ✉️
+                  </p>
+                  <p className="text-xs text-slateText-secondary leading-relaxed">
+                    Akun dengan email <strong className="text-slateText-primary">{email}</strong> telah terdaftar, namun Anda perlu mengonfirmasi email terlebih dahulu melalui tautan aktivasi di Gmail Anda sebelum bisa masuk.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <a
+                  href="https://mail.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-1.5 rounded-full bg-brand-500 hover:bg-brand-600 active:scale-95 text-white font-bold text-xs shadow-sm shadow-brand-500/20 inline-flex items-center gap-1.5 transition-all"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Buka Gmail
+                </a>
+
+                <button
+                  type="button"
+                  disabled={isResending}
+                  onClick={handleResendLoginConfirmation}
+                  className="px-3 py-1.5 rounded-full bg-white dark:bg-darkCard border border-slate-200 dark:border-darkBorder hover:bg-slate-50 dark:hover:bg-darkBorder/40 text-xs font-semibold text-slateText-secondary inline-flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isResending ? 'animate-spin' : ''}`} />
+                  {isResending ? 'Mengirim...' : 'Kirim Ulang Email Aktivasi'}
+                </button>
+              </div>
+
+              {resendStatus === 'success' && (
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                  ✓ Link verifikasi baru telah dikirimkan ke email Anda!
+                </p>
+              )}
+              {resendStatus === 'error' && (
+                <p className="text-[11px] text-rose-500 font-medium">
+                  Gagal mengirim ulang. Periksa folder Spam Anda atau tunggu beberapa saat.
+                </p>
+              )}
+            </div>
+          ) : authError ? (
             <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-scale-in">
               <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <div>
@@ -160,7 +230,7 @@ export const LoginPage: React.FC = () => {
                 <p className="text-rose-600 mt-0.5">{authError}</p>
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Quick Demo Role Selector - Dev Only */}
           {isDev && (

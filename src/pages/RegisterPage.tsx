@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { User, Mail, AlertCircle } from 'lucide-react';
+import { User, Mail, AlertCircle, CheckCircle2, ExternalLink, RefreshCw } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { TextField } from '../components/ui/TextField';
 import { PasswordField } from '../components/ui/PasswordField';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
+import { authService } from '../services/authService';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -63,7 +64,30 @@ export const RegisterPage: React.FC = () => {
   };
 
   const [authError, setAuthError] = useState('');
+  const [showConfirmationNotice, setShowConfirmationNotice] = useState(false);
+  const [confirmedEmailTarget, setConfirmedEmailTarget] = useState('');
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
   const { signUp } = useAuth();
+
+  const handleResendEmail = async () => {
+    if (!confirmedEmailTarget || isResending) return;
+    setIsResending(true);
+    setResendStatus('idle');
+    try {
+      const res = await authService.resendConfirmationEmail(confirmedEmailTarget);
+      if (res.success) {
+        setResendStatus('success');
+      } else {
+        setResendStatus('error');
+      }
+    } catch {
+      setResendStatus('error');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,11 +118,8 @@ export const RegisterPage: React.FC = () => {
       }
 
       if (res.emailConfirmationRequired) {
-        sessionStorage.setItem(
-          'coursue_flash',
-          `Akun untuk ${email} berhasil dibuat! Silakan cek email Anda untuk verifikasi, atau login dengan kata sandi Anda.`
-        );
-        navigate('/login', { replace: true });
+        setConfirmedEmailTarget(email.trim().toLowerCase());
+        setShowConfirmationNotice(true);
         return;
       }
 
@@ -109,6 +130,111 @@ export const RegisterPage: React.FC = () => {
       setAuthError('Gagal menghubungkan ke server pendaftaran.');
     }
   };
+
+  if (showConfirmationNotice) {
+    return (
+      <AuthLayout>
+        <div className="space-y-6 text-left animate-scale-in">
+          {/* Header icon & badge */}
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-brand-500/10 dark:bg-brand-500/20 flex items-center justify-center text-brand-600 dark:text-brand-400 shadow-sm border border-brand-500/20">
+              <Mail className="w-6 h-6 stroke-[2]" />
+            </div>
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Registrasi Berhasil
+              </span>
+              <h1 className="text-2xl font-black text-slateText-primary tracking-tight mt-1">
+                Aktivasi Akun Anda ✉️
+              </h1>
+            </div>
+          </div>
+
+          {/* Target Email Box */}
+          <div className="p-4 rounded-2xl bg-brand-50/60 dark:bg-brand-950/20 border border-brand-200/60 dark:border-brand-900/40 space-y-2 text-sm text-slateText-secondary">
+            <p>
+              Tautan konfirmasi pendaftaran telah dikirimkan ke alamat email:
+            </p>
+            <div className="font-bold text-slateText-primary break-all bg-white dark:bg-darkCard px-3 py-2 rounded-xl border border-brand-100 dark:border-brand-900/60 text-brand-600 dark:text-brand-400">
+              {confirmedEmailTarget}
+            </div>
+          </div>
+
+          {/* Step by step guide */}
+          <div className="space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-slateText-muted">
+              Langkah Selanjutnya:
+            </p>
+            <ol className="space-y-2.5 text-xs text-slateText-secondary">
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">1</span>
+                <span>Buka aplikasi Gmail atau inbox email Anda.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">2</span>
+                <span>Temukan email dari <strong>Supabase Auth</strong> berjudul <em>&quot;Confirm your email address&quot;</em>.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">3</span>
+                <span>Klik tautan <strong>&quot;Confirm email address&quot;</strong> di dalam email tersebut untuk mengaktifkan akun.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">!</span>
+                <span className="text-slateText-muted">Jika belum muncul di Kotak Masuk, periksa juga folder <strong>Spam</strong> atau <strong>Promosi</strong>.</span>
+              </li>
+            </ol>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2.5 pt-2">
+            <a
+              href="https://mail.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 px-4 rounded-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-bold text-sm shadow-md shadow-brand-500/25 flex items-center justify-center gap-2 transition-all"
+            >
+              <ExternalLink className="w-4 h-4" /> Buka Gmail Sekarang
+            </a>
+
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              size="md"
+              className="rounded-full"
+              onClick={() => navigate('/login')}
+            >
+              Sudah Konfirmasi? Masuk ke Akun
+            </Button>
+          </div>
+
+          {/* Resend Action */}
+          <div className="pt-2 text-center text-xs text-slateText-muted border-t border-slate-100 dark:border-darkBorder flex items-center justify-between">
+            <span>Belum menerima email?</span>
+            <button
+              type="button"
+              disabled={isResending}
+              onClick={handleResendEmail}
+              className="font-bold text-brand-500 hover:text-brand-600 disabled:opacity-50 inline-flex items-center gap-1 focus:outline-none cursor-pointer"
+            >
+              <RefreshCw className={`w-3 h-3 ${isResending ? 'animate-spin' : ''}`} />
+              {isResending ? 'Mengirim...' : 'Kirim Ulang'}
+            </button>
+          </div>
+          {resendStatus === 'success' && (
+            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 text-center font-medium">
+              ✓ Email konfirmasi baru berhasil dikirimkan ulang!
+            </p>
+          )}
+          {resendStatus === 'error' && (
+            <p className="text-[11px] text-rose-500 text-center font-medium">
+              Gagal mengirim ulang email (mungkin terkena batas limit per jam). Cek folder spam Anda.
+            </p>
+          )}
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
