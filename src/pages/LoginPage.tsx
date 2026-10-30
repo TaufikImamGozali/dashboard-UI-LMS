@@ -109,7 +109,7 @@ export const LoginPage: React.FC = () => {
         showToast('Logged in as Platform Administrator', 'success');
         navigate('/admin', { replace: true });
       } else {
-        navigate('/', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } catch {
       setIsLoading(false);

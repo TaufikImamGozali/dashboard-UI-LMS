@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { isAdmin } = useAuth();
   const isInbox = currentPath === '/inbox' || currentPath.startsWith('/group');
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { id: 'inbox', label: 'Inbox', icon: Mail, path: '/inbox', badge: unreadMessages },
     { id: 'lesson', label: 'Lesson', icon: BookOpen, path: '/lesson' },
     { id: 'task', label: 'Task', icon: CheckSquare, path: '/task' },

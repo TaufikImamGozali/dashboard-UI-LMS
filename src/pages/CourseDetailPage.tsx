@@ -272,7 +272,7 @@ export const CourseDetailPage: React.FC = () => {
             <Button
               variant="primary"
               size="md"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               leftIcon={<ArrowLeft className="w-4 h-4" />}
               className="rounded-full shadow-purple-glow"
             >

@@ -32,7 +32,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
           <div className="space-y-3">
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-full border border-outline hover:bg-surface-muted text-content-primary font-semibold text-sm transition-all"
             >
               <ArrowLeft className="w-4 h-4" />

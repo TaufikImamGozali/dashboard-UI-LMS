@@ -16,6 +16,7 @@ import { ProfileProvider } from './providers/ProfileProvider';
 import { ThemeProvider } from './hooks/useTheme';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
+const LandingPage = lazy(() => import('./pages/LandingPage').then((module) => ({ default: module.LandingPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then((module) => ({ default: module.ResetPasswordPage })));
@@ -83,6 +84,10 @@ function DashboardLayout() {
                 path="/"
                 element={<DashboardPage searchQuery={searchQuery} />}
               />
+              <Route
+                path="/dashboard"
+                element={<DashboardPage searchQuery={searchQuery} />}
+              />
 
               {/* Secondary Dashboard Routes */}
               <Route
@@ -123,11 +128,11 @@ function DashboardLayout() {
   );
 }
 
-// Redirect authenticated users away from auth pages (e.g. /login -> /)
+// Redirect authenticated users away from auth pages (e.g. /login -> /dashboard)
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
 }
@@ -144,6 +149,9 @@ export default function App() {
         <a href="#main-content" className="fixed left-4 top-4 z-toast -translate-y-24 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-transform focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">Skip to content</a>
         <Suspense fallback={<div className="min-h-screen bg-brand-bg p-6"><RouteSkeleton /></div>}>
           <Routes>
+        {/* Public Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Public Auth Routes */}
         <Route
           path="/login"

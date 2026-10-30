@@ -45,7 +45,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onRefresh }) => {
         )}
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-outline hover:border-brand-300 hover:bg-brand-50/50 text-content-primary font-semibold text-sm transition-all shadow-xs"
         >
           <Eye className="w-4 h-4 text-brand-500" />

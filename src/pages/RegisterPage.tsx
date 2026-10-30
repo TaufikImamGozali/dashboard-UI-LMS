@@ -100,7 +100,7 @@ export const RegisterPage: React.FC = () => {
       }
 
       sessionStorage.setItem('coursue_flash', `Selamat datang, ${fullName.trim()}! Akun Anda telah aktif.`);
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch {
       setIsLoading(false);
       setAuthError('Gagal menghubungkan ke server pendaftaran.');
