@@ -141,6 +141,8 @@ export const courseService = {
 
       return (courses as unknown as (DbCourse & { profiles?: { name?: string; avatar?: string; role?: string } | null })[]).map((c) => {
         const userProgress = progressMap[c.id];
+        const fallbackPrice = mockCoursesDetail[c.slug]?.price || mockCoursesDetail[c.id]?.price || 0;
+        const resolvedPrice = Number(c.price) > 0 ? Number(c.price) : fallbackPrice;
         return {
           id: c.id,
           title: c.title,
@@ -148,24 +150,26 @@ export const courseService = {
           categoryLabel: getCategoryLabel(c.category),
           thumbnail:
             c.thumbnail_url ||
+            mockCoursesDetail[c.slug]?.thumbnail ||
             'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
           progress: userProgress ? Number(userProgress.progress_percentage) : 0,
           mentor: {
-            name: c.profiles?.name || 'Coursue Mentor',
+            name: c.profiles?.name || mockCoursesDetail[c.slug]?.mentor.name || 'Coursue Mentor',
             avatar:
               c.profiles?.avatar ||
+              mockCoursesDetail[c.slug]?.mentor.avatar ||
               'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
             role: c.profiles?.role === 'admin' ? 'Platform Administrator' : 'Lead Instructor',
           },
           isFavorite: false,
           level: normalizeLevel(c.level),
-          rating: 4.9,
-          reviewsCount: 128,
-          studentsCount: '1.2k',
-          totalDuration: '4h 15m',
+          rating: mockCoursesDetail[c.slug]?.rating || 4.9,
+          reviewsCount: mockCoursesDetail[c.slug]?.reviewsCount || 128,
+          studentsCount: mockCoursesDetail[c.slug]?.studentsCount || '1.2k',
+          totalDuration: mockCoursesDetail[c.slug]?.totalDuration || '8h 30m',
           status: userProgress ? (userProgress.calculated_status as Course['status']) : 'not-started',
           releaseDate: c.created_at,
-          price: Number(c.price),
+          price: resolvedPrice,
           slug: c.slug,
         };
       });
@@ -213,14 +217,26 @@ export const courseService = {
 
       if (error || !course) {
         // Fallback to mock data by slug or id
-        const mockMatch = mockCourses.find((c) => c.slug === slugOrId || c.id === slugOrId);
+        const directDetail = mockCoursesDetail[slugOrId];
+        const mockMatch =
+          directDetail ||
+          mockCourses.find((c) => c.slug === slugOrId || c.id === slugOrId);
+
         if (mockMatch) {
-          const isPaid = Number(mockMatch.price) > 0;
+          const detail =
+            directDetail ||
+            mockCoursesDetail[mockMatch.id] ||
+            mockCoursesDetail[slugOrId];
+
+          const isPaid = Number(detail?.price ?? (mockMatch as any).price ?? 0) > 0;
           let isEnrolled = false;
           try {
             const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
             const list: string[] = JSON.parse(stored);
-            if (list.includes(mockMatch.id)) {
+            if (
+              list.includes(mockMatch.id) ||
+              (detail && (list.includes(detail.id) || list.includes(detail.slug || '')))
+            ) {
               isEnrolled = true;
             }
           } catch {}
@@ -229,11 +245,10 @@ export const courseService = {
             isEnrolled = true;
           }
 
-          const detail = mockCoursesDetail[mockMatch.id] || mockCoursesDetail[slugOrId];
           if (detail) {
             return {
               ...detail,
-              price: mockMatch.price || 0,
+              price: detail.price,
               isEnrolled,
               status: isEnrolled ? 'in-progress' : 'not-started',
               access: isEnrolled ? 'Akses Penuh Aktif' : isPaid ? 'Kelas Berbayar' : 'Akses Gratis',
@@ -241,105 +256,11 @@ export const courseService = {
                 ...sec,
                 lessons: sec.lessons.map((l, lIdx) => ({
                   ...l,
-                  isLocked: !isEnrolled && !(sIdx === 0 && lIdx === 0),
+                  isLocked: isPaid && !isEnrolled ? !(sIdx === 0 && lIdx === 0) : false,
                 })),
               })),
             };
           }
-
-          return {
-            id: mockMatch.id,
-            title: mockMatch.title,
-            slug: mockMatch.slug,
-            category: mockMatch.category,
-            categoryLabel: mockMatch.categoryLabel,
-            thumbnail: mockMatch.thumbnail,
-            rating: mockMatch.rating || 4.9,
-            reviewsCount: mockMatch.reviewsCount || 120,
-            studentsCount: String(mockMatch.studentsCount || '1.2k'),
-            totalDuration: mockMatch.totalDuration || '12h 00m',
-            lastUpdated: 'Oktober 2026',
-            description: `Pelajari dan kuasai materi ${mockMatch.title} secara komprehensif, mulai dari konsep dasar hingga implementasi tingkat lanjut dengan bimbingan mentor berpengalaman.`,
-            whatYouWillLearn: [
-              `Memahami konsep fundamental dan studi kasus ${mockMatch.title}`,
-              'Membangun portofolio dan proyek praktis nyata',
-              'Praktik terbaik industri dan tips efisiensi kerja',
-              'Sertifikat penyelesaian terverifikasi untuk profil profesional',
-            ],
-            requirements: [
-              'Koneksi internet dan perangkat komputer (PC/Laptop)',
-              'Kemauan dan komitmen belajar yang konsisten',
-              'Tidak diperlukan keahlian awal khusus, materi dimulai dari dasar',
-            ],
-            level: mockMatch.level || 'Beginner',
-            language: 'Indonesian (Bahasa Indonesia)',
-            certificate: true,
-            access: isEnrolled ? 'Akses Penuh Aktif' : isPaid ? 'Kelas Berbayar' : 'Akses Gratis',
-            status: isEnrolled ? 'in-progress' : 'not-started',
-            price: mockMatch.price || 0,
-            isFavorite: mockMatch.isFavorite,
-            isEnrolled,
-            mentor: {
-              id: 'm-default',
-              name: mockMatch.mentor.name,
-              role: mockMatch.mentor.role,
-              avatar: mockMatch.mentor.avatar,
-              bio: 'Praktisi industri dan instruktur profesional dengan pengalaman bertahun-tahun di bidangnya.',
-              rating: 4.95,
-              students: '12,000+ students',
-              isFollowing: false,
-            },
-            sections: [
-              {
-                id: `s-${mockMatch.id}-1`,
-                title: 'Section 1: Kurikulum & Materi Pembelajaran',
-                lessons: [
-                  {
-                    id: `l-${mockMatch.id}-1`,
-                    title: `Pengenalan & Fundamental ${mockMatch.title}`,
-                    duration: '45:00',
-                    isCompleted: false,
-                    isLocked: false, // Lesson 1: Free Trial Preview
-                    videoUrl: 'https://www.youtube.com/watch?v=kUMe1FH4CHE',
-                  },
-                  {
-                    id: `l-${mockMatch.id}-2`,
-                    title: `Konsep Inti & Arsitektur Utama`,
-                    duration: '55:00',
-                    isCompleted: false,
-                    isLocked: !isEnrolled,
-                    videoUrl: 'https://www.youtube.com/watch?v=yfoY53QXEnI',
-                  },
-                  {
-                    id: `l-${mockMatch.id}-3`,
-                    title: `Studi Kasus & Implementasi Proyek`,
-                    duration: '1h 10m',
-                    isCompleted: false,
-                    isLocked: !isEnrolled,
-                    videoUrl: 'https://www.youtube.com/watch?v=w7ejDZ8SWv8',
-                  },
-                  {
-                    id: `l-${mockMatch.id}-4`,
-                    title: `Review Proyek Akhir & Best Practices`,
-                    duration: '40:00',
-                    isCompleted: false,
-                    isLocked: !isEnrolled,
-                    videoUrl: 'https://www.youtube.com/watch?v=SqcY0GlETPk',
-                  },
-                ],
-              },
-            ],
-            reviews: [
-              {
-                id: 'r1',
-                userName: 'Sarah Jenkins',
-                userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-                rating: 5,
-                date: '2 hari yang lalu',
-                comment: 'Materi sangat berbobot dan mudah dipahami! Mentor menjelaskan setiap langkah dengan runtut.',
-              },
-            ],
-          };
         }
         console.warn('Course not found:', slugOrId, error);
         return null;
@@ -347,6 +268,18 @@ export const courseService = {
 
       const { data: sessionData } = await supabase.auth.getSession();
       const currentUser = sessionData.session?.user;
+
+      const fallbackDetail =
+        mockCoursesDetail[course.slug] ||
+        mockCoursesDetail[course.id] ||
+        mockCoursesDetail[slugOrId];
+
+      const resolvedPrice =
+        course.price && Number(course.price) > 0
+          ? Number(course.price)
+          : (fallbackDetail?.price || 0);
+
+      const isPaid = resolvedPrice > 0;
 
       // Check enrollment
       let isEnrolled = false;
@@ -366,10 +299,18 @@ export const courseService = {
         try {
           const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
           const list: string[] = JSON.parse(stored);
-          if (list.includes(course.id)) {
+          if (
+            list.includes(course.id) ||
+            (course.slug && list.includes(course.slug)) ||
+            (fallbackDetail && list.includes(fallbackDetail.id))
+          ) {
             isEnrolled = true;
           }
         } catch {}
+      }
+
+      if (!isPaid) {
+        isEnrolled = true;
       }
 
       // Fetch lessons (if enrolled, full lessons with video are accessible via RLS; otherwise outline or preview lessons)
@@ -425,64 +366,84 @@ export const courseService = {
       const totalDurationSecs = lessonsData.reduce((acc, l) => acc + (l.duration_seconds || 0), 0);
 
       // Structure curriculum into sections
-      const curriculumLessons: CurriculumLesson[] = lessonsData.map((l) => {
-        const isCompleted = completedLessonIds.has(l.id);
-        const isLocked = !isEnrolled && !l.is_preview;
+      let finalSections: CourseSection[] = [];
 
-        return {
-          id: l.id,
-          title: l.title,
-          duration: formatDurationFromSeconds(l.duration_seconds),
-          isCompleted,
-          isLocked,
-          videoUrl: l.youtube_video_id
-            ? `https://www.youtube-nocookie.com/embed/${l.youtube_video_id}`
-            : l.youtube_url || undefined,
-        };
-      });
+      if (lessonsData.length > 0) {
+        const curriculumLessons: CurriculumLesson[] = lessonsData.map((l, lIdx) => {
+          const isCompleted = completedLessonIds.has(l.id);
+          // Pro courses: preview free for lesson 1, locked for lessons 2+ unless enrolled
+          const isLocked = isPaid && !isEnrolled ? (lIdx === 0 ? false : !l.is_preview) : false;
 
-      const sections: CourseSection[] = [
-        {
-          id: `sec-${course.id}`,
-          title: 'Section 1: Course Curriculum & Lessons',
-          lessons: curriculumLessons,
-        },
-      ];
+          return {
+            id: l.id,
+            title: l.title,
+            duration: formatDurationFromSeconds(l.duration_seconds),
+            isCompleted,
+            isLocked,
+            videoUrl: l.youtube_video_id
+              ? `https://www.youtube-nocookie.com/embed/${l.youtube_video_id}`
+              : l.youtube_url || undefined,
+          };
+        });
+
+        finalSections = [
+          {
+            id: `sec-${course.id}`,
+            title: 'Section 1: Kurikulum & Materi Pembelajaran Lengkap',
+            lessons: curriculumLessons,
+          },
+        ];
+      } else if (fallbackDetail && fallbackDetail.sections.length > 0) {
+        finalSections = fallbackDetail.sections.map((sec, sIdx) => ({
+          ...sec,
+          lessons: sec.lessons.map((l, lIdx) => ({
+            ...l,
+            isCompleted: completedLessonIds.has(l.id),
+            isLocked: isPaid && !isEnrolled ? !(sIdx === 0 && lIdx === 0) : false,
+          })),
+        }));
+      }
 
       return {
         id: course.id,
+        slug: course.slug,
         title: course.title,
         category: course.category as CategoryType,
         categoryLabel: getCategoryLabel(course.category),
         thumbnail:
           course.thumbnail_url ||
+          fallbackDetail?.thumbnail ||
           'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
-        rating: 4.9,
-        reviewsCount: 384,
-        studentsCount: '3,840',
-        totalDuration: formatDurationFromSeconds(totalDurationSecs),
+        rating: fallbackDetail?.rating || 4.9,
+        reviewsCount: fallbackDetail?.reviewsCount || 384,
+        studentsCount: fallbackDetail?.studentsCount || '3,840',
+        totalDuration:
+          totalDurationSecs > 0
+            ? formatDurationFromSeconds(totalDurationSecs)
+            : fallbackDetail?.totalDuration || '8h 30m',
         lastUpdated: new Date(course.updated_at || course.created_at).toLocaleDateString('en-US', {
           month: 'long',
           year: 'numeric',
         }),
         description:
           course.description ||
+          fallbackDetail?.description ||
           'Pelajari materi komprehensif bersama mentor berpengalaman untuk menguasai kompetensi digital terkini.',
-        whatYouWillLearn: [
+        whatYouWillLearn: fallbackDetail?.whatYouWillLearn || [
           'Memahami konsep dasar hingga implementasi tingkat lanjut',
           'Membangun portofolio nyata yang siap ditunjukkan ke industri',
           'Menguasai best practices, tips efisiensi, dan standar industri modern',
           'Akses materi video interaktif dan modul terstruktur',
         ],
-        requirements: [
+        requirements: fallbackDetail?.requirements || [
           'Koneksi internet yang stabil untuk memutar video materi',
           'Kemauan untuk belajar dan mempraktikkan materi pembelajaran',
         ],
         level: normalizeLevel(course.level),
         language: 'Indonesian (Bahasa Indonesia)',
         certificate: true,
-        access: isEnrolled ? 'Akses Penuh Aktif' : Number(course.price) === 0 ? 'Akses Gratis' : 'Kelas Berbayar',
-        mentor: {
+        access: isEnrolled ? 'Akses Penuh Aktif' : isPaid ? 'Kelas Berbayar' : 'Akses Gratis',
+        mentor: fallbackDetail?.mentor || {
           id: (course.profiles as { id?: string } | null)?.id || 'mentor-default',
           name: (course.profiles as { name?: string } | null)?.name || 'Coursue Mentor',
           role: 'Lead Specialist & Educator',
@@ -494,8 +455,8 @@ export const courseService = {
           students: '12,000+',
           isFollowing: false,
         },
-        sections,
-        reviews: [
+        sections: finalSections,
+        reviews: fallbackDetail?.reviews || [
           {
             id: 'rev-1',
             userName: 'Budi Santoso',
@@ -516,7 +477,7 @@ export const courseService = {
         isFavorite: false,
         status: isEnrolled ? 'in-progress' : 'not-started',
         releaseDate: course.created_at,
-        price: Number(course.price),
+        price: resolvedPrice,
         isEnrolled,
       };
     } catch (err) {
@@ -591,19 +552,25 @@ export const courseService = {
       try {
         const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
         const list: string[] = JSON.parse(stored);
+        const match = mockCoursesDetail[courseId];
+        if (match) {
+          if (!list.includes(match.id)) list.push(match.id);
+          if (match.slug && !list.includes(match.slug)) list.push(match.slug);
+        }
         if (!list.includes(courseId)) {
           list.push(courseId);
-          localStorage.setItem('coursue_paid_enrollments', JSON.stringify(list));
         }
+        localStorage.setItem('coursue_paid_enrollments', JSON.stringify(list));
       } catch (e) {
         console.warn('Failed to update local paid enrollments:', e);
       }
 
-      // 2. Insert into Supabase if authenticated
+      // 2. Insert into Supabase if authenticated and is a valid UUID
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData.session?.user;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseId);
 
-      if (user) {
+      if (user && isUuid) {
         const { error } = await supabase
           .from('enrollments')
           .insert({

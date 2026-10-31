@@ -15,6 +15,7 @@ interface CourseTabsProps {
   isAllLessonsCompleted?: boolean;
   activeTab?: CourseTabId;
   onTabChange?: (tab: CourseTabId) => void;
+  onPaidClick?: () => void;
 }
 
 export const CourseTabs: React.FC<CourseTabsProps> = ({
@@ -25,6 +26,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
   isAllLessonsCompleted = false,
   activeTab: controlledTab,
   onTabChange,
+  onPaidClick,
 }) => {
   const [internalTab, setInternalTab] = useState<CourseTabId>('overview');
   const currentTab = controlledTab ?? internalTab;
@@ -175,6 +177,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
               sections={course.sections}
               activeLessonId={activeLessonId}
               onSelectLesson={onSelectLesson}
+              onPaidClick={onPaidClick}
             />
           </div>
         )}

@@ -405,6 +405,7 @@ export const CourseDetailPage: React.FC = () => {
                   isAllLessonsCompleted={totalLessons > 0 && completedLessons === totalLessons}
                   activeTab={selectedTab}
                   onTabChange={setSelectedTab}
+                  onPaidClick={handlePaidClick}
                   onSelectLesson={(lesson) => {
                     setActiveLesson(lesson);
                     window.scrollTo({ top: 0, behavior: 'smooth' });

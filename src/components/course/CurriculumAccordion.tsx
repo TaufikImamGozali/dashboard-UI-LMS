@@ -12,12 +12,14 @@ interface CurriculumAccordionProps {
   sections: CourseSection[];
   activeLessonId: string;
   onSelectLesson: (lesson: CurriculumLesson) => void;
+  onPaidClick?: () => void;
 }
 
 export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
   sections,
   activeLessonId,
   onSelectLesson,
+  onPaidClick,
 }) => {
   // By default, open the first section and any section containing the active lesson
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
@@ -40,11 +42,13 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
   };
 
   const handleLessonClick = (lesson: CurriculumLesson) => {
-    onSelectLesson(lesson);
     if (lesson.isLocked) {
       setLockedTooltip(lesson.id);
       setTimeout(() => setLockedTooltip(null), 2500);
+      onPaidClick?.();
+      return;
     }
+    onSelectLesson(lesson);
   };
 
   return (
