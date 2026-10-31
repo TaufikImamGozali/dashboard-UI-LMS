@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import {
-  CheckCircle2,
   Lock,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   CreditCard,
-  Clock,
 } from 'lucide-react';
 import type { CurriculumLesson } from '../../types';
 import { Button } from '../ui/Button';
@@ -330,7 +328,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       {/* Lesson Controls & Navigation Bar */}
       {lesson && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-2xl bg-surface border border-outline shadow-2xs">
+        <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-surface border border-outline shadow-2xs">
           {/* Navigation: Previous Lesson */}
           <button
             type="button"
@@ -345,28 +343,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <ChevronLeft className="w-4 h-4" />
             <span>Materi Sebelumnya</span>
           </button>
-
-          {/* Automatic Progress Status Badge with Clickable Fallback */}
-          {isEnrolled && (
-            <div>
-              {lesson.isCompleted ? (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold select-none transition-all bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Selesai Ditonton ✓</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => triggerCompletion()}
-                  title="Klik untuk menandai selesai jika video sudah Anda tonton"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-surface-muted hover:bg-slate-200/80 dark:hover:bg-darkBorder text-slateText-secondary border border-outline cursor-pointer active:scale-95"
-                >
-                  <Clock className="w-4 h-4 text-brand-500 animate-pulse" />
-                  <span>Belum Selesai (Otomatis / Klik)</span>
-                </button>
-              )}
-            </div>
-          )}
 
           {/* Navigation: Next Lesson */}
           <button
