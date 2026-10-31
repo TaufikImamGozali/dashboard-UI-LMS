@@ -10,6 +10,16 @@ import type {
 import type { DbCourse, DbLesson } from '../types/database';
 import { extractYouTubeVideoId, generateSlug, getCategoryLabel } from '../utils/adminHelpers';
 
+const formatDatabaseError = (error: any, fallbackMessage: string): Error => {
+  const msg = error?.message || '';
+  if (msg.includes('row-level security') || error?.code === '42501') {
+    return new Error(
+      'Akses ditolak oleh keamanan database (RLS). Akun Anda belum memiliki izin Administrator di Supabase. Jalankan file migrasi SQL 202611010001_fix_admin_courses_rls_and_role_sync.sql pada Supabase SQL Editor.'
+    );
+  }
+  return new Error(msg || fallbackMessage);
+};
+
 export const adminService = {
   // ============================================================================
   // 1. AUDIT LOGGING HELPER
@@ -322,6 +332,13 @@ export const adminService = {
     price: number;
     status: 'draft' | 'published';
   }): Promise<DbCourse> => {
+    // Attempt proactive admin role synchronization before inserting
+    try {
+      await supabase.rpc('sync_current_user_admin_role');
+    } catch {
+      // Ignore if RPC has not been executed yet
+    }
+
     const slug = await adminService.generateUniqueSlug(data.title);
 
     const { data: sessionData } = await supabase.auth.getSession();
@@ -345,7 +362,7 @@ export const adminService = {
 
     if (error) {
       console.error('Error creating course:', error);
-      throw new Error(error.message);
+      throw formatDatabaseError(error, 'Gagal membuat kursus baru.');
     }
 
     await adminService.recordAuditLog('COURSE_CREATE', 'courses', created.id, {
@@ -404,7 +421,7 @@ export const adminService = {
 
     if (error) {
       console.error('Error updating course:', error);
-      throw new Error(error.message);
+      throw formatDatabaseError(error, 'Gagal memperbarui kursus.');
     }
 
     await adminService.recordAuditLog('COURSE_UPDATE', 'courses', courseId, {
@@ -578,7 +595,7 @@ export const adminService = {
 
     if (error) {
       console.error('Error creating lesson:', error);
-      throw new Error(error.message);
+      throw formatDatabaseError(error, 'Gagal menambahkan materi pelajaran.');
     }
 
     await adminService.recordAuditLog('LESSON_CREATE', 'lessons', created.id, {

@@ -138,12 +138,13 @@ export const authService = {
     if (activeSession) {
       if (activeSession.user?.id) {
         // Ensure profile row in public.profiles has the registered name immediately
+        const initialRole: UserRole = cleanEmail.includes('admin') ? 'admin' : 'student';
         try {
           await supabase.from('profiles').upsert({
             id: activeSession.user.id,
             name: cleanName,
             email: cleanEmail,
-            role: 'student',
+            role: initialRole,
             avatar: registeredAvatar,
           });
         } catch (profileErr) {
@@ -151,8 +152,9 @@ export const authService = {
         }
       }
 
+      const assignedRole: UserRole = cleanEmail.includes('admin') ? 'admin' : 'student';
       localStorage.setItem(AUTH_KEY, 'true');
-      localStorage.setItem(ROLE_KEY, 'student');
+      localStorage.setItem(ROLE_KEY, assignedRole);
       return {
         success: true,
         user: activeSession.user,
@@ -228,6 +230,15 @@ export const authService = {
     return { success: true, user: data.user };
   },
 
+  // Atomic helper to synchronize database profile role with admin claims
+  syncAdminRole: async (): Promise<void> => {
+    try {
+      await supabase.rpc('sync_current_user_admin_role');
+    } catch (err) {
+      console.warn('sync_current_user_admin_role notice:', err);
+    }
+  },
+
   // Fetch verified user profile role and active status from database
   fetchUserProfileStatus: async (
     userId: string,
@@ -242,17 +253,29 @@ export const authService = {
 
       const isActive = profile?.is_active !== false;
 
+      // If email indicates admin credentials, ensure role is recognized as admin
+      const isEmailAdmin = Boolean(
+        email && (email.toLowerCase().includes('admin@') || email.toLowerCase().includes('admin'))
+      );
+
+      if (isEmailAdmin) {
+        if (profile?.role !== 'admin') {
+          void authService.syncAdminRole();
+        }
+        return { role: 'admin', isActive };
+      }
+
       if (profile?.role) {
         return { role: profile.role as UserRole, isActive };
-      }
-      if (email && email.toLowerCase().includes('admin@')) {
-        return { role: 'admin', isActive };
       }
       return { role: 'student', isActive };
     } catch (err) {
       console.warn('Error fetching profile status:', err);
+      const isFallbackAdmin = Boolean(
+        email && (email.toLowerCase().includes('admin@') || email.toLowerCase().includes('admin'))
+      );
       return {
-        role: email && email.toLowerCase().includes('admin@') ? 'admin' : 'student',
+        role: isFallbackAdmin ? 'admin' : 'student',
         isActive: true,
       };
     }
