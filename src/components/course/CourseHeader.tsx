@@ -3,6 +3,7 @@ import { Star, Users, Clock, Calendar, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { CourseDetail } from '../../types';
 import { TagBadge } from '../ui/TagBadge';
+import { formatPrice } from '../../utils/currency';
 
 interface CourseHeaderProps {
   course: CourseDetail;
@@ -37,7 +38,7 @@ export const CourseHeader: React.FC<CourseHeaderProps> = ({ course }) => {
                 : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-2xs'
             }`}
           >
-            {course.price > 0 ? `Kelas Premium Berbayar • $${course.price}` : 'Kelas Gratis'}
+            {course.price > 0 ? `Kelas Premium Berbayar • ${formatPrice(course.price)}` : 'Kelas Gratis'}
           </span>
         )}
       </div>

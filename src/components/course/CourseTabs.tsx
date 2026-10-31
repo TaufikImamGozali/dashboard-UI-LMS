@@ -1,23 +1,45 @@
 import React, { useState } from 'react';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, FileCode2 } from 'lucide-react';
 import type { CourseDetail, CurriculumLesson } from '../../types';
 import { CurriculumAccordion } from './CurriculumAccordion';
 import { ReviewCard } from './ReviewCard';
+import { CourseAssignmentTab } from './CourseAssignmentTab';
+
+export type CourseTabId = 'overview' | 'lessons' | 'reviews' | 'assignment';
 
 interface CourseTabsProps {
   course: CourseDetail;
   activeLessonId: string;
   onSelectLesson: (lesson: CurriculumLesson) => void;
+  isEnrolled?: boolean;
+  isAllLessonsCompleted?: boolean;
+  activeTab?: CourseTabId;
+  onTabChange?: (tab: CourseTabId) => void;
+  onPaidClick?: () => void;
 }
 
 export const CourseTabs: React.FC<CourseTabsProps> = ({
   course,
   activeLessonId,
   onSelectLesson,
+  isEnrolled = false,
+  isAllLessonsCompleted = false,
+  activeTab: controlledTab,
+  onTabChange,
+  onPaidClick,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'lessons' | 'reviews'>('overview');
+  const [internalTab, setInternalTab] = useState<CourseTabId>('overview');
+  const currentTab = controlledTab ?? internalTab;
 
-  const tabs: Array<{ id: 'overview' | 'lessons' | 'reviews'; label: string; count?: number }> = [
+  const handleTabClick = (tab: CourseTabId) => {
+    if (onTabChange) {
+      onTabChange(tab);
+    } else {
+      setInternalTab(tab);
+    }
+  };
+
+  const tabs: Array<{ id: CourseTabId; label: string; count?: number }> = [
     { id: 'overview', label: 'Overview' },
     {
       id: 'lessons',
@@ -25,6 +47,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
       count: course.sections.reduce((acc, s) => acc + s.lessons.length, 0),
     },
     { id: 'reviews', label: 'Reviews', count: course.reviews.length },
+    { id: 'assignment', label: 'Tugas & Proyek' },
   ];
 
   return (
@@ -33,10 +56,10 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
       <div
         role="tablist"
         aria-label="Course content tabs"
-        className="flex items-center gap-2 border-b border-slate-200/80 overflow-x-auto no-scrollbar"
+        className="flex items-center gap-2 border-b border-slate-200/80 dark:border-darkBorder overflow-x-auto no-scrollbar"
       >
         {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
+          const isActive = currentTab === tab.id;
           return (
             <button
               key={tab.id}
@@ -44,20 +67,21 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
               aria-selected={isActive}
               aria-controls={`tabpanel-${tab.id}`}
               id={`tab-${tab.id}`}
-              onClick={() => setActiveTab(tab.id)}
-              className={`pb-3.5 px-4 font-bold text-sm tracking-tight transition-all duration-200 relative whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-t-lg ${
+              onClick={() => handleTabClick(tab.id)}
+              className={`pb-3.5 px-4 font-bold text-sm tracking-tight transition-all duration-200 relative whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded-t-lg cursor-pointer flex items-center gap-1.5 ${
                 isActive
                   ? 'text-brand-500'
                   : 'text-slateText-muted hover:text-slateText-primary'
               }`}
             >
+              {tab.id === 'assignment' && <FileCode2 className="w-3.5 h-3.5" />}
               <span>{tab.label}</span>
               {tab.count !== undefined && (
                 <span
-                  className={`ml-2 px-2 py-0.5 rounded-full text-meta font-semibold ${
+                  className={`ml-1.5 px-2 py-0.5 rounded-full text-meta font-semibold ${
                     isActive
-                      ? 'bg-brand-50 text-brand-500'
-                      : 'bg-slate-100 text-slateText-muted'
+                      ? 'bg-brand-50 text-brand-500 dark:bg-brand-950/50 dark:text-brand-400'
+                      : 'bg-slate-100 text-slateText-muted dark:bg-darkBorder/60'
                   }`}
                 >
                   {tab.count}
@@ -76,7 +100,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
       {/* Tab Content Panels */}
       <div>
         {/* OVERVIEW PANEL */}
-        {activeTab === 'overview' && (
+        {currentTab === 'overview' && (
           <div
             role="tabpanel"
             id="tabpanel-overview"
@@ -133,7 +157,7 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
         )}
 
         {/* LESSONS PANEL */}
-        {activeTab === 'lessons' && (
+        {currentTab === 'lessons' && (
           <div
             role="tabpanel"
             id="tabpanel-lessons"
@@ -153,12 +177,13 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
               sections={course.sections}
               activeLessonId={activeLessonId}
               onSelectLesson={onSelectLesson}
+              onPaidClick={onPaidClick}
             />
           </div>
         )}
 
         {/* REVIEWS PANEL */}
-        {activeTab === 'reviews' && (
+        {currentTab === 'reviews' && (
           <div
             role="tabpanel"
             id="tabpanel-reviews"
@@ -215,6 +240,22 @@ export const CourseTabs: React.FC<CourseTabsProps> = ({
                 <ReviewCard key={rev.id} review={rev} />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ASSIGNMENT & EVALUATION PANEL */}
+        {currentTab === 'assignment' && (
+          <div
+            role="tabpanel"
+            id="tabpanel-assignment"
+            aria-labelledby="tab-assignment"
+            className="animate-fadeIn"
+          >
+            <CourseAssignmentTab
+              courseId={course.id}
+              isEnrolled={Boolean(isEnrolled)}
+              isAllLessonsCompleted={Boolean(isAllLessonsCompleted)}
+            />
           </div>
         )}
       </div>

@@ -7,7 +7,7 @@ import { EmptyState } from './ui/EmptyState';
 interface ContinueWatchingSectionProps {
   courses: Course[];
   searchQuery: string;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite?: (id: string) => void;
   onCourseClick?: (course: Course) => void;
 }
 
@@ -83,6 +83,7 @@ export const ContinueWatchingSection: React.FC<ContinueWatchingSectionProps> = (
               course={course}
               onToggleFavorite={onToggleFavorite}
               onClick={onCourseClick}
+              className="w-course-card sm:w-course-card-wide shrink-0"
             />
           ))}
         </div>

@@ -5,19 +5,20 @@ import { Sidebar } from '../components/Sidebar';
 import { Topbar } from '../components/Topbar';
 import { CourseHeader } from '../components/course/CourseHeader';
 import { VideoPlayer } from '../components/course/VideoPlayer';
-import { CourseTabs } from '../components/course/CourseTabs';
+import { CourseTabs, type CourseTabId } from '../components/course/CourseTabs';
 import { CourseProgressPanel } from '../components/course/CourseProgressPanel';
 import { CourseInfoCard } from '../components/course/CourseInfoCard';
 import { CourseMentorCard } from '../components/course/CourseMentorCard';
 import { CourseCard } from '../components/CourseCard';
+import { CoursePaymentModal } from '../components/course/CoursePaymentModal';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
-import { mockFriends } from '../data/mockData';
+import { useFavorites } from '../hooks/useFavorites';
+import { formatPrice } from '../utils/currency';
 import type { CourseDetail, CurriculumLesson, Course } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { useChat } from '../hooks/useChat';
 import { courseService } from '../services/courseService';
 
 const firstAvailableLesson = (course: CourseDetail | null): CurriculumLesson | null => {
@@ -33,21 +34,22 @@ export const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { conversations } = useChat();
   const { toasts, showToast, dismissToast } = useToast();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
   const [activeLesson, setActiveLesson] = useState<CurriculumLesson | null>(null);
   const [publishedCourses, setPublishedCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedTab, setSelectedTab] = useState<CourseTabId>('overview');
+  const [playTrigger, setPlayTrigger] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
-
-  const unreadMessages = conversations.reduce((total, item) => total + item.unreadCount, 0);
 
   // Load course details from Supabase on mount or id change
   useEffect(() => {
@@ -105,6 +107,12 @@ export const CourseDetailPage: React.FC = () => {
     return courseData.sections.flatMap((s) => s.lessons);
   }, [courseData]);
 
+  const totalLessons = allLessons.length;
+  const completedLessons = useMemo(
+    () => allLessons.filter((l) => l.isCompleted).length,
+    [allLessons]
+  );
+
   const activeLessonIndex = useMemo(() => {
     if (!activeLesson) return -1;
     return allLessons.findIndex((l) => l.id === activeLesson.id);
@@ -127,12 +135,12 @@ export const CourseDetailPage: React.FC = () => {
     }
   };
 
-  // Toggle mark lesson as complete & persist to Supabase
-  const handleMarkAsComplete = async (lessonId: string) => {
+  // Automatic completion handler triggered when YouTube video reaches the end
+  const handleVideoEnded = async (lessonId: string) => {
     if (!courseData) return;
 
     const currentLesson = allLessons.find((l) => l.id === lessonId);
-    const targetStatus = !(currentLesson?.isCompleted ?? false);
+    if (currentLesson?.isCompleted) return; // Already marked complete
 
     // Optimistic UI update
     setCourseData((prev) => {
@@ -140,7 +148,7 @@ export const CourseDetailPage: React.FC = () => {
       const updatedSections = prev.sections.map((section) => ({
         ...section,
         lessons: section.lessons.map((lesson) =>
-          lesson.id === lessonId ? { ...lesson, isCompleted: targetStatus } : lesson
+          lesson.id === lessonId ? { ...lesson, isCompleted: true } : lesson
         ),
       }));
       return {
@@ -150,18 +158,15 @@ export const CourseDetailPage: React.FC = () => {
     });
 
     setActiveLesson((prev) =>
-      prev && prev.id === lessonId ? { ...prev, isCompleted: targetStatus } : prev
+      prev && prev.id === lessonId ? { ...prev, isCompleted: true } : prev
     );
 
     // Persist to Supabase lesson_progress table
-    const res = await courseService.markLessonCompleted(lessonId, targetStatus);
+    const res = await courseService.markLessonCompleted(lessonId, true);
     if (!res.success) {
       showToast(res.error || 'Gagal memperbarui progres materi', 'error');
     } else {
-      showToast(
-        targetStatus ? 'Materi ditandai sebagai selesai! 🎉' : 'Materi ditandai belum selesai',
-        'success'
-      );
+      showToast('🎉 Video selesai ditonton! Progres Anda telah disimpan otomatis.', 'success');
     }
   };
 
@@ -184,29 +189,54 @@ export const CourseDetailPage: React.FC = () => {
 
   // Paid course handler
   const handlePaidClick = () => {
-    showToast(
-      'Sistem pembayaran kelas berbayar saat ini belum tersedia. Nantikan update segera!',
-      'info'
-    );
+    setPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    showToast('🎉 Pembayaran berhasil diverifikasi! Selamat belajar.', 'success');
+    await refetchCourse();
+  };
+
+  const handleToggleCourseFavorite = () => {
+    if (!courseData) return;
+    toggleFavorite(courseData.id, courseData.title);
   };
 
   const handleContinueLearning = () => {
     if (!courseData) return;
 
+    // 1. If all lessons completed, switch to Assignment & Project tab
+    if (totalLessons > 0 && completedLessons === totalLessons) {
+      setSelectedTab('assignment');
+      showToast('Semua materi selesai! Membuka halaman evaluasi proyek 🚀', 'success');
+      const tabEl = document.getElementById('tab-assignment');
+      if (tabEl) {
+        tabEl.scrollIntoView({ behavior: 'smooth' });
+      }
+      return;
+    }
+
+    // 2. Find next uncompleted lesson
     const nextUncompleted = allLessons.find((l) => !l.isCompleted && !l.isLocked);
     if (nextUncompleted) {
-      setActiveLesson(nextUncompleted);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
+      if (activeLesson?.id !== nextUncompleted.id) {
+        setActiveLesson(nextUncompleted);
+        showToast(`Melanjutkan ke materi: ${nextUncompleted.title} ▶️`, 'info');
+      } else {
+        showToast(`Melanjutkan materi: ${nextUncompleted.title} ▶️`, 'info');
+      }
 
-  const handleToggleFavorite = () => {
-    if (!courseData) return;
-    setCourseData((prev) => (prev ? { ...prev, isFavorite: !prev.isFavorite } : null));
-    showToast(
-      courseData.isFavorite ? 'Dihapus dari daftar favorit' : 'Ditambahkan ke daftar favorit',
-      'info'
-    );
+      // Scroll smoothly to video player container
+      const playerContainer = document.getElementById('course-video-player-container');
+      if (playerContainer) {
+        playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Remote trigger auto-play
+      setPlayTrigger((prev) => prev + 1);
+    }
   };
 
   const handleToggleMentorFollow = () => {
@@ -284,9 +314,6 @@ export const CourseDetailPage: React.FC = () => {
     );
   }
 
-  // Calculate completed lessons
-  const totalLessons = allLessons.length;
-  const completedLessons = allLessons.filter((l) => l.isCompleted).length;
   const isEnrolled = courseData.status === 'in-progress' || courseData.access === 'Akses Penuh Aktif';
   const relatedCourses = publishedCourses.filter((c) => c.id !== courseData.id).slice(0, 3);
 
@@ -297,11 +324,9 @@ export const CourseDetailPage: React.FC = () => {
         <Sidebar
           currentPath="/lesson"
           onNavigate={(path) => navigate(path)}
-          friends={mockFriends}
           isOpenMobile={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
           onLogout={() => setLogoutOpen(true)}
-          unreadMessages={unreadMessages}
         />
 
         {/* Content Area */}
@@ -335,7 +360,7 @@ export const CourseDetailPage: React.FC = () => {
                             Kelas Premium Berbayar
                           </span>
                           <span className="px-2 py-0.5 rounded-full text-meta font-extrabold bg-purple-200 text-purple-800">
-                            ${courseData.price}
+                            {formatPrice(courseData.price)}
                           </span>
                         </div>
                         <p className="text-xs text-purple-700 mt-0.5">
@@ -349,12 +374,12 @@ export const CourseDetailPage: React.FC = () => {
                       onClick={handlePaidClick}
                       className="rounded-full shrink-0 shadow-purple-glow bg-purple-600 hover:bg-purple-700"
                     >
-                      Beli Kelas (${courseData.price})
+                      Beli Kelas ({formatPrice(courseData.price)})
                     </Button>
                   </div>
                 )}
 
-                {/* Video Player */}
+                {/* Video Player with Automatic Completion Detection */}
                 <VideoPlayer
                   lesson={activeLesson}
                   thumbnail={courseData.thumbnail}
@@ -362,7 +387,8 @@ export const CourseDetailPage: React.FC = () => {
                   isPaid={Boolean(courseData.price && courseData.price > 0)}
                   price={courseData.price}
                   isEnrolling={isEnrolling}
-                  onMarkAsComplete={handleMarkAsComplete}
+                  playTrigger={playTrigger}
+                  onVideoEnded={handleVideoEnded}
                   onPreviousLesson={handlePreviousLesson}
                   onNextLesson={handleNextLesson}
                   hasPrevious={hasPrevious}
@@ -371,10 +397,15 @@ export const CourseDetailPage: React.FC = () => {
                   onPaidClick={handlePaidClick}
                 />
 
-                {/* Tabs: Overview, Lessons Curriculum, Reviews */}
+                {/* Tabs: Overview, Lessons Curriculum, Reviews, Tugas & Proyek */}
                 <CourseTabs
                   course={courseData}
                   activeLessonId={activeLesson?.id || ''}
+                  isEnrolled={isEnrolled}
+                  isAllLessonsCompleted={totalLessons > 0 && completedLessons === totalLessons}
+                  activeTab={selectedTab}
+                  onTabChange={setSelectedTab}
+                  onPaidClick={handlePaidClick}
                   onSelectLesson={(lesson) => {
                     setActiveLesson(lesson);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -388,12 +419,17 @@ export const CourseDetailPage: React.FC = () => {
                 <CourseProgressPanel
                   completedLessons={completedLessons}
                   totalLessons={totalLessons}
-                  isFavorite={courseData.isFavorite}
+                  isFavorite={isFavorite(courseData.id)}
                   isEnrolled={isEnrolled}
                   price={courseData.price}
                   isEnrolling={isEnrolling}
-                  onToggleFavorite={handleToggleFavorite}
+                  onToggleFavorite={handleToggleCourseFavorite}
                   onContinueLearning={handleContinueLearning}
+                  onOpenAssignment={() => {
+                    setSelectedTab('assignment');
+                    const el = document.getElementById('tab-assignment');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   onEnrollFree={handleEnrollFree}
                   onPaidClick={handlePaidClick}
                 />
@@ -426,7 +462,6 @@ export const CourseDetailPage: React.FC = () => {
                     <CourseCard
                       key={relCourse.id}
                       course={relCourse}
-                      onToggleFavorite={() => {}}
                       onClick={() => navigate(`/course/${relCourse.slug || relCourse.id}`)}
                     />
                   ))}
@@ -436,6 +471,15 @@ export const CourseDetailPage: React.FC = () => {
           </main>
         </div>
       </div>
+
+      {courseData && (
+        <CoursePaymentModal
+          isOpen={paymentModalOpen}
+          course={courseData}
+          onClose={() => setPaymentModalOpen(false)}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={logoutOpen}

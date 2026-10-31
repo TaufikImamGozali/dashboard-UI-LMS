@@ -5,14 +5,13 @@ import { Topbar } from './components/Topbar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
-import { RouteSkeleton } from './components/ui/RouteSkeleton';
+import { FullPageLoader } from './components/ui/FullPageLoader';
+import { ContentAreaSkeleton } from './components/ui/ContentAreaSkeleton';
 import { ConfirmDialog } from './components/ui/ConfirmDialog';
-import { mockFriends } from './data/mockData';
 import { useAuth } from './hooks/useAuth';
-import { ChatProvider, useChat } from './hooks/useChat';
 import { AuthProvider } from './providers/AuthProvider';
-import { NotificationsProvider } from './providers/NotificationsProvider';
 import { ProfileProvider } from './providers/ProfileProvider';
+import { FavoritesProvider } from './providers/FavoritesProvider';
 import { ThemeProvider } from './hooks/useTheme';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
@@ -22,14 +21,11 @@ const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then(
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then((module) => ({ default: module.ResetPasswordPage })));
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage').then((module) => ({ default: module.CourseDetailPage })));
 const LessonPage = lazy(() => import('./pages/LessonPage').then((module) => ({ default: module.LessonPage })));
-const TaskPage = lazy(() => import('./pages/TaskPage').then((module) => ({ default: module.TaskPage })));
-const InboxPage = lazy(() => import('./pages/InboxPage').then((module) => ({ default: module.InboxPage })));
-const GroupPage = lazy(() => import('./pages/GroupPage').then((module) => ({ default: module.GroupPage })));
-const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage').then((module) => ({ default: module.GroupDetailPage })));
+const ExplorePage = lazy(() => import('./pages/ExplorePage').then((module) => ({ default: module.ExplorePage })));
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage').then((module) => ({ default: module.AnnouncementsPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
-const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
 const HelpPage = lazy(() => import('./pages/HelpPage').then((module) => ({ default: module.HelpPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then((module) => ({ default: module.AdminPage })));
 
@@ -42,8 +38,6 @@ function DashboardLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const { logout } = useAuth();
-  const { conversations } = useChat();
-  const unreadMessages = conversations.reduce((total, item) => total + item.unreadCount, 0);
 
   const handleLogout = () => {
     logout();
@@ -59,11 +53,9 @@ function DashboardLayout() {
         <Sidebar
           currentPath={location.pathname}
           onNavigate={(path) => navigate(path)}
-          friends={mockFriends}
           isOpenMobile={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
           onLogout={() => setLogoutOpen(true)}
-          unreadMessages={unreadMessages}
         />
 
         {/* Column 2 & 3: Main Area (Center + Right) */}
@@ -78,48 +70,44 @@ function DashboardLayout() {
 
           {/* Body Content */}
           <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto no-scrollbar">
-            <Routes>
-              {/* Main Dashboard Route */}
-              <Route
-                path="/"
-                element={<DashboardPage searchQuery={searchQuery} />}
-              />
-              <Route
-                path="/dashboard"
-                element={<DashboardPage searchQuery={searchQuery} />}
-              />
+            <Suspense fallback={<ContentAreaSkeleton />}>
+              <Routes>
+                {/* Main Dashboard Route */}
+                <Route
+                  path="/"
+                  element={<DashboardPage searchQuery={searchQuery} />}
+                />
+                <Route
+                  path="/dashboard"
+                  element={<DashboardPage searchQuery={searchQuery} />}
+                />
 
-              {/* Secondary Dashboard Routes */}
-              <Route
-                path="/inbox"
-                element={<InboxPage />}
-              />
-              <Route
-                path="/lesson"
-                element={<LessonPage />}
-              />
-              <Route
-                path="/task"
-                element={<TaskPage />}
-              />
-              <Route
-                path="/group"
-                element={<GroupPage />}
-              />
-              <Route path="/group/:id" element={<GroupDetailPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/help" element={<HelpPage />} />
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <AdminPage />
-                  </AdminRoute>
-                }
-              />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+                {/* LMS Core Student Routes */}
+                <Route
+                  path="/explore"
+                  element={<ExplorePage searchQuery={searchQuery} />}
+                />
+                <Route
+                  path="/lesson"
+                  element={<LessonPage />}
+                />
+                <Route
+                  path="/announcements"
+                  element={<AnnouncementsPage />}
+                />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/help" element={<HelpPage />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
           </main>
         </div>
       </div>
@@ -142,73 +130,71 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <ProfileProvider>
-          <NotificationsProvider>
-            <ChatProvider>
-              <ErrorBoundary>
-                <BrowserRouter>
-        <a href="#main-content" className="fixed left-4 top-4 z-toast -translate-y-24 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-transform focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">Skip to content</a>
-        <Suspense fallback={<div className="min-h-screen bg-brand-bg p-6"><RouteSkeleton /></div>}>
-          <Routes>
-        {/* Public Landing Page */}
-        <Route path="/" element={<LandingPage />} />
+          <FavoritesProvider>
+            <ErrorBoundary>
+              <BrowserRouter>
+              <a href="#main-content" className="fixed left-4 top-4 z-toast -translate-y-24 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-transform focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">Skip to content</a>
+              <Suspense fallback={<FullPageLoader message="Memuat platform Coursue..." />}>
+                <Routes>
+                  {/* Public Landing Page */}
+                  <Route path="/" element={<LandingPage />} />
 
-        {/* Public Auth Routes */}
-        <Route
-          path="/login"
-          element={
-            <PublicOnlyRoute>
-              <LoginPage />
-            </PublicOnlyRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicOnlyRoute>
-              <RegisterPage />
-            </PublicOnlyRoute>
-          }
-        />
-        <Route
-          path="/forgot-password"
-          element={
-            <PublicOnlyRoute>
-              <ForgotPasswordPage />
-            </PublicOnlyRoute>
-          }
-        />
-        <Route
-          path="/reset-password"
-          element={<ResetPasswordPage />}
-        />
+                  {/* Public Auth Routes */}
+                  <Route
+                    path="/login"
+                    element={
+                      <PublicOnlyRoute>
+                        <LoginPage />
+                      </PublicOnlyRoute>
+                    }
+                  />
+                  <Route
+                    path="/register"
+                    element={
+                      <PublicOnlyRoute>
+                        <RegisterPage />
+                      </PublicOnlyRoute>
+                    }
+                  />
+                  <Route
+                    path="/forgot-password"
+                    element={
+                      <PublicOnlyRoute>
+                        <ForgotPasswordPage />
+                      </PublicOnlyRoute>
+                    }
+                  />
+                  <Route
+                    path="/reset-password"
+                    element={<ResetPasswordPage />}
+                  />
 
-        {/* Protected Course Detail Route */}
-        <Route
-          path="/course/:id"
-          element={
-            <ProtectedRoute>
-              <CourseDetailPage />
-            </ProtectedRoute>
-          }
-        />
+                  {/* Protected Course Detail Route */}
+                  <Route
+                    path="/course/:id"
+                    element={
+                      <ProtectedRoute>
+                        <CourseDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-        {/* Protected Dashboard Routes */}
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        />
-          </Routes>
-        </Suspense>
-                </BrowserRouter>
-              </ErrorBoundary>
-            </ChatProvider>
-          </NotificationsProvider>
-        </ProfileProvider>
-      </AuthProvider>
+                  {/* Protected Dashboard Routes */}
+                  <Route
+                    path="/*"
+                    element={
+                      <ProtectedRoute>
+                        <DashboardLayout />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </ErrorBoundary>
+        </FavoritesProvider>
+      </ProfileProvider>
+    </AuthProvider>
     </ThemeProvider>
   );
 }

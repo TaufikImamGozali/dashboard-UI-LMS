@@ -5,10 +5,10 @@ import { ContinueWatchingSection } from '../components/ContinueWatchingSection';
 import { CourseProgressCard } from '../components/CourseProgressCard';
 import { HeroBanner } from '../components/HeroBanner';
 import { LessonTable } from '../components/LessonTable';
-import { MentorList } from '../components/MentorList';
+import { DashboardAnnouncementsCard } from '../components/dashboard/DashboardAnnouncementsCard';
 import { StatisticCard } from '../components/StatisticCard';
 import { Button } from '../components/ui/Button';
-import { mockMentors, mockStatistics } from '../data/mockData';
+import { mockStatistics } from '../data/mockData';
 import type { Course, Lesson, ProgressSummary } from '../types';
 import { courseService } from '../services/courseService';
 
@@ -22,7 +22,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ searchQuery }) => 
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [progressSummaries, setProgressSummaries] = useState<ProgressSummary[]>([]);
   const [recentLessons, setRecentLessons] = useState<Lesson[]>([]);
-  const [mentors, setMentors] = useState(mockMentors);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -140,18 +139,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ searchQuery }) => 
 
       <div className="space-y-6 lg:space-y-7 xl:col-span-4">
         <StatisticCard data={mockStatistics} />
-        <MentorList
-          mentors={mentors}
-          onToggleFollow={(mentorId) =>
-            setMentors((current) =>
-              current.map((mentor) =>
-                mentor.id === mentorId ? { ...mentor, isFollowing: !mentor.isFollowing } : mentor
-              )
-            )
-          }
-          onAddMentor={() => alert('Direktori mentor akan segera tersedia')}
-          onSeeAllMentors={() => alert('Daftar mentor ditampilkan')}
-        />
+        <DashboardAnnouncementsCard />
       </div>
     </div>
   );

@@ -9,11 +9,14 @@ import { CourseSkeleton } from '../components/lessons/CourseSkeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination } from '../components/lessons/Pagination';
 import { courseService } from '../services/courseService';
+import { mockCourses } from '../data/mockData';
+import { useFavorites } from '../hooks/useFavorites';
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 16;
 
 export const LessonPage: React.FC = () => {
   const navigate = useNavigate();
+  const { isFavorite } = useFavorites();
 
   // ─── Filter state ───────────────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -25,7 +28,7 @@ export const LessonPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch real published courses from Supabase
+  // Fetch real published courses from Supabase with graceful fallback
   useEffect(() => {
     let isMounted = true;
     const fetchCourses = async () => {
@@ -33,10 +36,17 @@ export const LessonPage: React.FC = () => {
       try {
         const data = await courseService.getPublishedCourses();
         if (isMounted) {
-          setCourses(data);
+          if (data && data.length > 0) {
+            setCourses(data);
+          } else {
+            setCourses(mockCourses);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch courses in LessonPage:', err);
+        if (isMounted) {
+          setCourses(mockCourses);
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -63,7 +73,9 @@ export const LessonPage: React.FC = () => {
     }
 
     // Status tab filter
-    if (selectedStatus !== 'all') {
+    if (selectedStatus === 'favorite') {
+      result = result.filter((c) => isFavorite(c.id));
+    } else if (selectedStatus !== 'all') {
       result = result.filter((c) => c.status === selectedStatus);
     }
 
@@ -86,7 +98,7 @@ export const LessonPage: React.FC = () => {
     }
 
     return result;
-  }, [courses, selectedCategory, selectedLevel, selectedStatus, selectedSort]);
+  }, [courses, selectedCategory, selectedLevel, selectedStatus, selectedSort, isFavorite]);
 
   // ─── Status counts ──────────────────────────────────────────────────────────
   const statusCounts = useMemo(() => {
@@ -95,8 +107,9 @@ export const LessonPage: React.FC = () => {
       'in-progress': courses.filter((c) => c.status === 'in-progress').length,
       completed: courses.filter((c) => c.status === 'completed').length,
       'not-started': courses.filter((c) => c.status === 'not-started').length,
+      favorite: courses.filter((c) => isFavorite(c.id)).length,
     };
-  }, [courses]);
+  }, [courses, isFavorite]);
 
   // ─── Pagination ──────────────────────────────────────────────────────────────
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -106,14 +119,6 @@ export const LessonPage: React.FC = () => {
   );
 
   // ─── Handlers ────────────────────────────────────────────────────────────────
-  const handleToggleFavorite = (courseId: string) => {
-    setCourses((prev) =>
-      prev.map((c) =>
-        c.id === courseId ? { ...c, isFavorite: !c.isFavorite } : c
-      )
-    );
-  };
-
   const handleSelectCourse = (course: Course) => {
     navigate(`/course/${course.slug || course.id}`);
   };
@@ -168,7 +173,6 @@ export const LessonPage: React.FC = () => {
             <CourseList
               courses={paginated}
               viewMode={viewMode}
-              onToggleFavorite={handleToggleFavorite}
               onSelectCourse={handleSelectCourse}
             />
 

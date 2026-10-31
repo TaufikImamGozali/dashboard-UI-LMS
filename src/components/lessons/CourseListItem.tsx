@@ -2,10 +2,12 @@ import React from 'react';
 import { Heart, Clock, Star, ArrowRight } from 'lucide-react';
 import type { Course } from '../../types';
 import { TagBadge } from '../ui/TagBadge';
+import { useFavorites } from '../../hooks/useFavorites';
+import { formatPrice } from '../../utils/currency';
 
 interface CourseListItemProps {
   course: Course;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite?: (id: string) => void;
   onClick: (course: Course) => void;
 }
 
@@ -14,6 +16,15 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
   onToggleFavorite,
   onClick,
 }) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const effectiveIsFavorite = isFavorite(course.id);
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(course.id, course.title);
+    onToggleFavorite?.(course.id);
+  };
+
   const getProgressBarColor = () => {
     switch (course.category) {
       case 'frontend':
@@ -46,9 +57,15 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
       <div className="flex items-start sm:items-center gap-4 min-w-0 flex-1">
         {/* Thumbnail with Heart Icon */}
         <div className="relative w-28 sm:w-36 h-20 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 shrink-0">
-          <img height="160" width="160"
+          <img
+            height="160"
+            width="160"
             src={course.thumbnail}
             alt={course.title}
+            onError={(e) => {
+              e.currentTarget.src =
+                'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80';
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
@@ -56,20 +73,17 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
           {/* Favorite heart button */}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(course.id);
-            }}
-            className={`absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-md flex items-center justify-center transition-transform active:scale-90 ${
-              course.isFavorite
-                ? 'bg-surface text-rose-500 shadow-sm'
+            onClick={handleHeartClick}
+            className={`absolute top-2 right-2 w-7 h-7 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-200 active:scale-75 hover:scale-110 ${
+              effectiveIsFavorite
+                ? 'bg-surface text-rose-500 shadow-sm ring-1 ring-rose-200'
                 : 'bg-black/30 text-white hover:bg-surface hover:text-rose-500'
             }`}
-            aria-label={course.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={effectiveIsFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}
           >
             <Heart
-              className={`w-3.5 h-3.5 ${
-                course.isFavorite ? 'fill-rose-500 text-rose-500' : 'text-white'
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                effectiveIsFavorite ? 'fill-rose-500 text-rose-500 scale-110' : 'text-white'
               }`}
             />
           </button>
@@ -92,11 +106,18 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
               <span
                 className={`text-meta font-extrabold px-2.5 py-0.5 rounded-full ${
                   course.price > 0
-                    ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                    ? 'bg-purple-100 text-purple-700 border border-purple-200 flex items-center gap-1'
                     : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                 }`}
               >
-                {course.price > 0 ? `$${course.price}` : 'GRATIS'}
+                {course.price > 0 ? (
+                  <>
+                    <span>👑</span>
+                    <span>{formatPrice(course.price)}</span>
+                  </>
+                ) : (
+                  'GRATIS'
+                )}
               </span>
             )}
           </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Edit3, Loader2 } from 'lucide-react';
+import { X, Edit3, Loader2, AlertCircle } from 'lucide-react';
 import type { AdminCourse } from '../../types/admin';
 
 interface EditCourseModalProps {
@@ -100,8 +100,11 @@ export const EditCourseModal: React.FC<EditCourseModalProps> = ({
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
-            {error}
+          <div className="mb-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2.5 leading-relaxed">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">{error}</p>
+            </div>
           </div>
         )}
 

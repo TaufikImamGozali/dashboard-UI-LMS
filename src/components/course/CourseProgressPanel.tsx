@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Heart, Share2, Check, ArrowRight, Sparkles, CreditCard } from 'lucide-react';
 import { ProgressRing } from './ProgressRing';
 import { Button } from '../ui/Button';
+import { formatPrice } from '../../utils/currency';
 
 interface CourseProgressPanelProps {
   completedLessons: number;
@@ -12,6 +13,7 @@ interface CourseProgressPanelProps {
   isEnrolling?: boolean;
   onToggleFavorite: () => void;
   onContinueLearning: () => void;
+  onOpenAssignment?: () => void;
   onEnrollFree?: () => void;
   onPaidClick?: () => void;
 }
@@ -25,6 +27,7 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
   isEnrolling = false,
   onToggleFavorite,
   onContinueLearning,
+  onOpenAssignment,
   onEnrollFree,
   onPaidClick,
 }) => {
@@ -67,11 +70,11 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
               variant="primary"
               fullWidth
               size="md"
-              onClick={onContinueLearning}
+              onClick={percentage === 100 && onOpenAssignment ? onOpenAssignment : onContinueLearning}
               rightIcon={<ArrowRight className="w-4 h-4" />}
               className="rounded-full shadow-purple-glow"
             >
-              Lanjutkan Belajar
+              {percentage === 100 ? 'Kumpulkan Proyek Akhir 🚀' : 'Lanjutkan Belajar'}
             </Button>
           </div>
         </div>
@@ -83,7 +86,7 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
               Kelas Berbayar
             </span>
             <span className="text-2xl font-extrabold text-slateText-primary tracking-tight">
-              ${price}
+              {formatPrice(price)}
             </span>
           </div>
 
@@ -105,13 +108,13 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
               leftIcon={<CreditCard className="w-4 h-4" />}
               className="rounded-full shadow-purple-glow bg-purple-600 hover:bg-purple-700"
             >
-              Beli Kelas (${price})
+              Beli Kelas ({formatPrice(price)})
             </Button>
           </div>
 
           <div className="p-2.5 rounded-xl bg-purple-50/70 border border-purple-100 text-center">
             <p className="text-micro font-medium text-purple-800">
-              ℹ️ Integrasi pembayaran sedang dalam pengembangan
+              ⚡ Pembayaran QRIS, VA & E-Wallet • Akses Instan
             </p>
           </div>
         </div>

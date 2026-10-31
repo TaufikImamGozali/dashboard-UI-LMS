@@ -9,6 +9,7 @@ interface StatusTabsProps {
     'in-progress': number;
     completed: number;
     'not-started': number;
+    favorite?: number;
   };
 }
 
@@ -22,6 +23,7 @@ export const StatusTabs: React.FC<StatusTabsProps> = ({
     { id: 'in-progress', label: 'In Progress', count: statusCounts['in-progress'] },
     { id: 'completed', label: 'Completed', count: statusCounts.completed },
     { id: 'not-started', label: 'Not Started', count: statusCounts['not-started'] },
+    { id: 'favorite', label: 'Favorit ❤️', count: statusCounts.favorite ?? 0 },
   ];
 
   return (

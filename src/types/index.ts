@@ -1,18 +1,23 @@
 export * from './database';
 
-export type CategoryType = 'frontend' | 'design' | 'branding';
+export type CategoryType =
+  | 'frontend'
+  | 'design'
+  | 'branding'
+  | 'ai'
+  | 'marketing'
+  | 'data'
+  | 'security'
+  | 'creative'
+  | 'softskills'
+  | 'finance'
+  | 'business'
+  | 'devops'
+  | string;
 export type CourseLevel = 'All' | 'Beginner' | 'Intermediate' | 'Advanced';
-export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started';
+export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started' | 'favorite';
 export type SortOption = 'newest' | 'popular' | 'rating' | 'progress';
 export type ViewMode = 'grid' | 'list';
-
-export interface Friend {
-  id: string;
-  name: string;
-  avatar: string;
-  status: 'Friend' | 'Old Friend';
-  isOnline?: boolean;
-}
 
 export interface ProgressSummary {
   id: string;
@@ -57,15 +62,6 @@ export interface Lesson {
   description: string;
   courseId?: string;
   title?: string;
-}
-
-export interface Mentor {
-  id: string;
-  name: string;
-  role: string;
-  avatar: string;
-  isOnline?: boolean;
-  isFollowing: boolean;
 }
 
 export interface StatisticDataPoint {
@@ -131,6 +127,7 @@ export interface CourseDetail {
   sections: CourseSection[];
   reviews: CourseReview[];
   isFavorite: boolean;
+  slug?: string;
   status?: 'in-progress' | 'completed' | 'not-started';
   releaseDate?: string;
   price?: number;

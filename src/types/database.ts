@@ -261,6 +261,38 @@ export interface Database {
           updated_at?: string;
         };
       };
+      announcements: {
+        Row: {
+          id: string;
+          title: string;
+          body: string;
+          course_id: string | null;
+          author_id: string;
+          is_published: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body: string;
+          course_id?: string | null;
+          author_id: string;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          body?: string;
+          course_id?: string | null;
+          author_id?: string;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       course_outline: {
@@ -346,3 +378,36 @@ export type DbAuditLogInsert = Database['public']['Tables']['audit_logs']['Inser
 
 export type DbPlatformSettings = Database['public']['Tables']['platform_settings']['Row'];
 export type DbPlatformSettingsUpdate = Database['public']['Tables']['platform_settings']['Update'];
+
+export type DbAnnouncement = Database['public']['Tables']['announcements']['Row'];
+export type DbAnnouncementInsert = Database['public']['Tables']['announcements']['Insert'];
+export type DbAnnouncementUpdate = Database['public']['Tables']['announcements']['Update'];
+
+export type SubmissionStatus = 'submitted' | 'under_review' | 'approved' | 'rejected';
+
+export interface DbCourseAssignment {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string;
+  requirements: string[];
+  due_days: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbAssignmentSubmission {
+  id: string;
+  assignment_id: string;
+  course_id: string;
+  user_id: string;
+  project_url: string;
+  notes: string | null;
+  status: SubmissionStatus;
+  grade: number | null;
+  feedback: string | null;
+  submitted_at: string;
+  updated_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+}

@@ -6,7 +6,7 @@ import { CourseListItem } from './CourseListItem';
 interface CourseListProps {
   courses: Course[];
   viewMode: ViewMode;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite?: (id: string) => void;
   onSelectCourse: (course: Course) => void;
 }
 
@@ -18,9 +18,9 @@ export const CourseList: React.FC<CourseListProps> = ({
 }) => {
   if (viewMode === 'grid') {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4.5">
         {courses.map((course) => (
-          <div key={course.id} className="flex justify-center">
+          <div key={course.id} className="flex justify-center w-full">
             <div className="w-full">
               <CourseCard
                 course={course}

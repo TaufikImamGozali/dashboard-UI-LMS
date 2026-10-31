@@ -115,6 +115,56 @@ export const profileService = {
     }
   },
 
+  // Upload user avatar image to Supabase Storage bucket 'avatars'
+  uploadAvatar: async (
+    userId: string,
+    file: File
+  ): Promise<{ success: boolean; url?: string; error?: string }> => {
+    try {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        return {
+          success: false,
+          error: 'Format file tidak didukung. Gunakan JPG, PNG, atau WebP.',
+        };
+      }
+
+      // Validate size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        return { success: false, error: 'Ukuran file foto maksimal 2 MB.' };
+      }
+
+      const fileExt = file.name.split('.').pop() || 'png';
+      const cleanExt = fileExt.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const filePath = `${userId}/${Date.now()}.${cleanExt}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.warn('Supabase storage upload error:', uploadError.message);
+        return { success: false, error: uploadError.message };
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(uploadData.path);
+
+      return { success: true, url: publicUrlData.publicUrl };
+    } catch (err: any) {
+      console.error('uploadAvatar error:', err);
+      return {
+        success: false,
+        error: err.message || 'Gagal mengunggah foto profil ke Supabase Storage',
+      };
+    }
+  },
+
   // Notification Preferences
   getNotificationPreferences: (): NotificationPreferences =>
     readStorage(PREFERENCES_KEY, defaultNotificationPreferences),

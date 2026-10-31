@@ -12,9 +12,17 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
 }) => {
   const categories: Array<{ id: CategoryType | 'all'; label: string }> = [
     { id: 'all', label: 'All' },
+    { id: 'ai', label: 'AI & Machine Learning' },
+    { id: 'frontend', label: 'Web & Tech' },
     { id: 'design', label: 'UI/UX Design' },
-    { id: 'branding', label: 'Branding' },
-    { id: 'frontend', label: 'Front End' },
+    { id: 'branding', label: 'Graphic & Branding' },
+    { id: 'data', label: 'Data Analytics' },
+    { id: 'security', label: 'Cybersecurity' },
+    { id: 'creative', label: 'Creative & Video' },
+    { id: 'marketing', label: 'Digital Marketing' },
+    { id: 'business', label: 'Business & Finance' },
+    { id: 'softskills', label: 'Career & Skills' },
+    { id: 'devops', label: 'Cloud & DevOps' },
   ];
 
   return (

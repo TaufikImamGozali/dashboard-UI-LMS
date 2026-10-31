@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase';
+import { mockCourses } from '../data/mockData';
+import { mockCoursesDetail } from '../data/courses';
 import type {
   CategoryType,
   Course,
@@ -10,6 +12,25 @@ import type {
   ProgressSummary,
 } from '../types';
 import type { DbCourse, DbLesson, UserCourseProgress } from '../types/database';
+
+export interface ExploreCourse {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  thumbnail: string;
+  category: CategoryType;
+  categoryLabel: string;
+  level: CourseLevel;
+  price: number;
+  lessonsCount: number;
+  isEnrolled: boolean;
+  mentor: {
+    name: string;
+    avatar: string;
+    role: string;
+  };
+}
 
 export const formatDurationFromSeconds = (seconds: number): string => {
   if (!seconds || seconds <= 0) return '00:00';
@@ -30,10 +51,26 @@ export const getCategoryLabel = (category: string): string => {
       return 'UI/UX DESIGN';
     case 'branding':
       return 'BRANDING';
+    case 'ai':
+      return 'ARTIFICIAL INTELLIGENCE';
+    case 'marketing':
+      return 'DIGITAL MARKETING';
+    case 'data':
+      return 'DATA ANALYTICS';
+    case 'security':
+      return 'CYBERSECURITY';
+    case 'creative':
+      return 'CONTENT CREATION';
+    case 'softskills':
+      return 'CAREER & SKILLS';
+    case 'finance':
+      return 'FINANCIAL LITERACY';
+    case 'business':
+      return 'ENTREPRENEURSHIP';
+    case 'devops':
+      return 'CLOUD & DEVOPS';
     case 'mobile':
       return 'MOBILE DEV';
-    case 'devops':
-      return 'DEVOPS';
     default:
       return category.toUpperCase();
   }
@@ -76,9 +113,11 @@ export const courseService = {
         .eq('status', 'published')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching published courses:', error);
-        return [];
+      if (error || !courses || courses.length === 0) {
+        if (error) {
+          console.warn('Notice fetching published courses from Supabase (using mock fallback):', error.message);
+        }
+        return mockCourses;
       }
 
       // Check if user is logged in to merge their progress
@@ -102,6 +141,8 @@ export const courseService = {
 
       return (courses as unknown as (DbCourse & { profiles?: { name?: string; avatar?: string; role?: string } | null })[]).map((c) => {
         const userProgress = progressMap[c.id];
+        const fallbackPrice = mockCoursesDetail[c.slug]?.price || mockCoursesDetail[c.id]?.price || 0;
+        const resolvedPrice = Number(c.price) > 0 ? Number(c.price) : fallbackPrice;
         return {
           id: c.id,
           title: c.title,
@@ -109,30 +150,32 @@ export const courseService = {
           categoryLabel: getCategoryLabel(c.category),
           thumbnail:
             c.thumbnail_url ||
+            mockCoursesDetail[c.slug]?.thumbnail ||
             'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
           progress: userProgress ? Number(userProgress.progress_percentage) : 0,
           mentor: {
-            name: c.profiles?.name || 'Coursue Mentor',
+            name: c.profiles?.name || mockCoursesDetail[c.slug]?.mentor.name || 'Coursue Mentor',
             avatar:
               c.profiles?.avatar ||
+              mockCoursesDetail[c.slug]?.mentor.avatar ||
               'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
             role: c.profiles?.role === 'admin' ? 'Platform Administrator' : 'Lead Instructor',
           },
           isFavorite: false,
           level: normalizeLevel(c.level),
-          rating: 4.9,
-          reviewsCount: 128,
-          studentsCount: '1.2k',
-          totalDuration: '4h 15m',
+          rating: mockCoursesDetail[c.slug]?.rating || 4.9,
+          reviewsCount: mockCoursesDetail[c.slug]?.reviewsCount || 128,
+          studentsCount: mockCoursesDetail[c.slug]?.studentsCount || '1.2k',
+          totalDuration: mockCoursesDetail[c.slug]?.totalDuration || '8h 30m',
           status: userProgress ? (userProgress.calculated_status as Course['status']) : 'not-started',
           releaseDate: c.created_at,
-          price: Number(c.price),
+          price: resolvedPrice,
           slug: c.slug,
         };
       });
     } catch (err) {
-      console.error('Failed to get published courses:', err);
-      return [];
+      console.error('Failed to get published courses, using mock fallback:', err);
+      return mockCourses;
     }
   },
 
@@ -173,12 +216,70 @@ export const courseService = {
       const { data: course, error } = await query.maybeSingle();
 
       if (error || !course) {
+        // Fallback to mock data by slug or id
+        const directDetail = mockCoursesDetail[slugOrId];
+        const mockMatch =
+          directDetail ||
+          mockCourses.find((c) => c.slug === slugOrId || c.id === slugOrId);
+
+        if (mockMatch) {
+          const detail =
+            directDetail ||
+            mockCoursesDetail[mockMatch.id] ||
+            mockCoursesDetail[slugOrId];
+
+          const isPaid = Number(detail?.price ?? (mockMatch as any).price ?? 0) > 0;
+          let isEnrolled = false;
+          try {
+            const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+            const list: string[] = JSON.parse(stored);
+            if (
+              list.includes(mockMatch.id) ||
+              (detail && (list.includes(detail.id) || list.includes(detail.slug || '')))
+            ) {
+              isEnrolled = true;
+            }
+          } catch {}
+
+          if (!isPaid) {
+            isEnrolled = true;
+          }
+
+          if (detail) {
+            return {
+              ...detail,
+              price: detail.price,
+              isEnrolled,
+              status: isEnrolled ? 'in-progress' : 'not-started',
+              access: isEnrolled ? 'Akses Penuh Aktif' : isPaid ? 'Kelas Berbayar' : 'Akses Gratis',
+              sections: detail.sections.map((sec, sIdx) => ({
+                ...sec,
+                lessons: sec.lessons.map((l, lIdx) => ({
+                  ...l,
+                  isLocked: isPaid && !isEnrolled ? !(sIdx === 0 && lIdx === 0) : false,
+                })),
+              })),
+            };
+          }
+        }
         console.warn('Course not found:', slugOrId, error);
         return null;
       }
 
       const { data: sessionData } = await supabase.auth.getSession();
       const currentUser = sessionData.session?.user;
+
+      const fallbackDetail =
+        mockCoursesDetail[course.slug] ||
+        mockCoursesDetail[course.id] ||
+        mockCoursesDetail[slugOrId];
+
+      const resolvedPrice =
+        course.price && Number(course.price) > 0
+          ? Number(course.price)
+          : (fallbackDetail?.price || 0);
+
+      const isPaid = resolvedPrice > 0;
 
       // Check enrollment
       let isEnrolled = false;
@@ -192,6 +293,24 @@ export const courseService = {
           .maybeSingle();
 
         isEnrolled = Boolean(enrollment);
+      }
+
+      if (!isEnrolled) {
+        try {
+          const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+          const list: string[] = JSON.parse(stored);
+          if (
+            list.includes(course.id) ||
+            (course.slug && list.includes(course.slug)) ||
+            (fallbackDetail && list.includes(fallbackDetail.id))
+          ) {
+            isEnrolled = true;
+          }
+        } catch {}
+      }
+
+      if (!isPaid) {
+        isEnrolled = true;
       }
 
       // Fetch lessons (if enrolled, full lessons with video are accessible via RLS; otherwise outline or preview lessons)
@@ -247,64 +366,84 @@ export const courseService = {
       const totalDurationSecs = lessonsData.reduce((acc, l) => acc + (l.duration_seconds || 0), 0);
 
       // Structure curriculum into sections
-      const curriculumLessons: CurriculumLesson[] = lessonsData.map((l) => {
-        const isCompleted = completedLessonIds.has(l.id);
-        const isLocked = !isEnrolled && !l.is_preview;
+      let finalSections: CourseSection[] = [];
 
-        return {
-          id: l.id,
-          title: l.title,
-          duration: formatDurationFromSeconds(l.duration_seconds),
-          isCompleted,
-          isLocked,
-          videoUrl: l.youtube_video_id
-            ? `https://www.youtube-nocookie.com/embed/${l.youtube_video_id}`
-            : l.youtube_url || undefined,
-        };
-      });
+      if (lessonsData.length > 0) {
+        const curriculumLessons: CurriculumLesson[] = lessonsData.map((l, lIdx) => {
+          const isCompleted = completedLessonIds.has(l.id);
+          // Pro courses: preview free for lesson 1, locked for lessons 2+ unless enrolled
+          const isLocked = isPaid && !isEnrolled ? (lIdx === 0 ? false : !l.is_preview) : false;
 
-      const sections: CourseSection[] = [
-        {
-          id: `sec-${course.id}`,
-          title: 'Section 1: Course Curriculum & Lessons',
-          lessons: curriculumLessons,
-        },
-      ];
+          return {
+            id: l.id,
+            title: l.title,
+            duration: formatDurationFromSeconds(l.duration_seconds),
+            isCompleted,
+            isLocked,
+            videoUrl: l.youtube_video_id
+              ? `https://www.youtube-nocookie.com/embed/${l.youtube_video_id}`
+              : l.youtube_url || undefined,
+          };
+        });
+
+        finalSections = [
+          {
+            id: `sec-${course.id}`,
+            title: 'Section 1: Kurikulum & Materi Pembelajaran Lengkap',
+            lessons: curriculumLessons,
+          },
+        ];
+      } else if (fallbackDetail && fallbackDetail.sections.length > 0) {
+        finalSections = fallbackDetail.sections.map((sec, sIdx) => ({
+          ...sec,
+          lessons: sec.lessons.map((l, lIdx) => ({
+            ...l,
+            isCompleted: completedLessonIds.has(l.id),
+            isLocked: isPaid && !isEnrolled ? !(sIdx === 0 && lIdx === 0) : false,
+          })),
+        }));
+      }
 
       return {
         id: course.id,
+        slug: course.slug,
         title: course.title,
         category: course.category as CategoryType,
         categoryLabel: getCategoryLabel(course.category),
         thumbnail:
           course.thumbnail_url ||
+          fallbackDetail?.thumbnail ||
           'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
-        rating: 4.9,
-        reviewsCount: 384,
-        studentsCount: '3,840',
-        totalDuration: formatDurationFromSeconds(totalDurationSecs),
+        rating: fallbackDetail?.rating || 4.9,
+        reviewsCount: fallbackDetail?.reviewsCount || 384,
+        studentsCount: fallbackDetail?.studentsCount || '3,840',
+        totalDuration:
+          totalDurationSecs > 0
+            ? formatDurationFromSeconds(totalDurationSecs)
+            : fallbackDetail?.totalDuration || '8h 30m',
         lastUpdated: new Date(course.updated_at || course.created_at).toLocaleDateString('en-US', {
           month: 'long',
           year: 'numeric',
         }),
         description:
           course.description ||
+          fallbackDetail?.description ||
           'Pelajari materi komprehensif bersama mentor berpengalaman untuk menguasai kompetensi digital terkini.',
-        whatYouWillLearn: [
+        whatYouWillLearn: fallbackDetail?.whatYouWillLearn || [
           'Memahami konsep dasar hingga implementasi tingkat lanjut',
           'Membangun portofolio nyata yang siap ditunjukkan ke industri',
           'Menguasai best practices, tips efisiensi, dan standar industri modern',
           'Akses materi video interaktif dan modul terstruktur',
         ],
-        requirements: [
+        requirements: fallbackDetail?.requirements || [
           'Koneksi internet yang stabil untuk memutar video materi',
           'Kemauan untuk belajar dan mempraktikkan materi pembelajaran',
         ],
         level: normalizeLevel(course.level),
         language: 'Indonesian (Bahasa Indonesia)',
         certificate: true,
-        access: isEnrolled ? 'Akses Penuh Aktif' : Number(course.price) === 0 ? 'Akses Gratis' : 'Kelas Berbayar',
-        mentor: {
+        access: isEnrolled ? 'Akses Penuh Aktif' : isPaid ? 'Kelas Berbayar' : 'Akses Gratis',
+        mentor: fallbackDetail?.mentor || {
           id: (course.profiles as { id?: string } | null)?.id || 'mentor-default',
           name: (course.profiles as { name?: string } | null)?.name || 'Coursue Mentor',
           role: 'Lead Specialist & Educator',
@@ -316,8 +455,8 @@ export const courseService = {
           students: '12,000+',
           isFollowing: false,
         },
-        sections,
-        reviews: [
+        sections: finalSections,
+        reviews: fallbackDetail?.reviews || [
           {
             id: 'rev-1',
             userName: 'Budi Santoso',
@@ -338,7 +477,7 @@ export const courseService = {
         isFavorite: false,
         status: isEnrolled ? 'in-progress' : 'not-started',
         releaseDate: course.created_at,
-        price: Number(course.price),
+        price: resolvedPrice,
         isEnrolled,
       };
     } catch (err) {
@@ -400,6 +539,63 @@ export const courseService = {
     } catch (err) {
       console.error('Error during free enrollment:', err);
       return { success: false, error: 'Gagal melakukan pendaftaran kursus.' };
+    }
+  },
+
+  // 3b. Self-enroll in a paid course via simulated payment
+  enrollPaidCourse: async (
+    courseId: string,
+    paymentMethod = 'qris'
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // 1. Record in local paid enrollments storage
+      try {
+        const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+        const list: string[] = JSON.parse(stored);
+        const match = mockCoursesDetail[courseId];
+        if (match) {
+          if (!list.includes(match.id)) list.push(match.id);
+          if (match.slug && !list.includes(match.slug)) list.push(match.slug);
+        }
+        if (!list.includes(courseId)) {
+          list.push(courseId);
+        }
+        localStorage.setItem('coursue_paid_enrollments', JSON.stringify(list));
+      } catch (e) {
+        console.warn('Failed to update local paid enrollments:', e);
+      }
+
+      // 2. Insert into Supabase if authenticated and is a valid UUID
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(courseId);
+
+      if (user && isUuid) {
+        const { error } = await supabase
+          .from('enrollments')
+          .insert({
+            course_id: courseId,
+            user_id: user.id,
+            status: 'active',
+            source: 'purchase',
+          });
+
+        if (error && error.code !== '23505') {
+          console.warn('Notice inserting paid enrollment to Supabase:', error.message);
+        }
+      }
+
+      // 3. Dispatch global event so components re-evaluate enrollment state immediately
+      window.dispatchEvent(
+        new CustomEvent('coursue:course-enrolled', {
+          detail: { courseId, source: 'purchase', paymentMethod },
+        })
+      );
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error during paid course enrollment:', err);
+      return { success: true };
     }
   },
 
@@ -633,6 +829,124 @@ export const courseService = {
     } catch (err) {
       console.error('Error marking lesson complete:', err);
       return { success: false, error: 'Failed to update lesson completion' };
+    }
+  },
+
+  // 10. Get all published courses for student Explore page with lesson count and enrollment state
+  getExploreCourses: async (): Promise<ExploreCourse[]> => {
+    try {
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select(`
+          id,
+          title,
+          slug,
+          description,
+          thumbnail_url,
+          category,
+          level,
+          price,
+          status,
+          created_at,
+          updated_at,
+          mentor_id,
+          profiles:mentor_id (
+            id,
+            name,
+            avatar,
+            role
+          )
+        `)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (error || !courses || courses.length === 0) {
+        if (error) console.warn('Notice fetching explore courses from Supabase (using mock fallback):', error.message);
+        const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+        const paidList: string[] = JSON.parse(stored);
+        return mockCourses.map((c) => ({
+          id: c.id,
+          title: c.title,
+          slug: c.slug || c.id,
+          description: `Pelajari materi komprehensif ${c.title} bersama mentor industri berpengalaman.`,
+          thumbnail: c.thumbnail,
+          category: c.category,
+          categoryLabel: c.categoryLabel,
+          level: c.level || 'Beginner',
+          price: c.price || 0,
+          lessonsCount: 8,
+          isEnrolled: paidList.includes(c.id),
+          mentor: c.mentor,
+        }));
+      }
+
+      // Fetch user session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+
+      // Fetch active enrollments
+      const enrolledSet = new Set<string>();
+      if (userId) {
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('user_id', userId)
+          .eq('status', 'active');
+
+        if (enrollments) {
+          enrollments.forEach((e) => enrolledSet.add(e.course_id));
+        }
+      }
+
+      try {
+        const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+        const list: string[] = JSON.parse(stored);
+        list.forEach((id: string) => enrolledSet.add(id));
+      } catch {}
+
+      // Fetch lesson counts from course_outline
+      const lessonCountMap: Record<string, number> = {};
+      try {
+        const { data: outline } = await supabase
+          .from('course_outline')
+          .select('course_id');
+
+        if (outline) {
+          outline.forEach((item) => {
+            lessonCountMap[item.course_id] = (lessonCountMap[item.course_id] || 0) + 1;
+          });
+        }
+      } catch {
+        // Outline query fallback
+      }
+
+      return (courses as any[]).map((c) => ({
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        description: c.description || '',
+        thumbnail:
+          c.thumbnail_url ||
+          'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+        category: c.category as CategoryType,
+        categoryLabel: getCategoryLabel(c.category),
+        level: normalizeLevel(c.level),
+        price: Number(c.price) || 0,
+        lessonsCount: lessonCountMap[c.id] || 0,
+        isEnrolled: enrolledSet.has(c.id),
+        mentor: {
+          name: c.profiles?.name || 'Coursue Mentor',
+          avatar:
+            c.profiles?.avatar ||
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+              c.profiles?.name || 'Mentor'
+            )}`,
+          role: c.profiles?.role === 'admin' ? 'Administrator' : 'Lead Instructor',
+        },
+      }));
+    } catch (err) {
+      console.error('Failed to get explore courses:', err);
+      return [];
     }
   },
 };

@@ -7,17 +7,19 @@ import { AdminStatsCards } from '../components/admin/AdminStatsCards';
 import { AdminOverviewTab } from '../components/admin/AdminOverviewTab';
 import { AdminCoursesTab } from '../components/admin/AdminCoursesTab';
 import { AdminUsersTab } from '../components/admin/AdminUsersTab';
+import { AdminAnnouncementsTab } from '../components/admin/AdminAnnouncementsTab';
 import { AdminAuditLogsTab } from '../components/admin/AdminAuditLogsTab';
 import { AdminSettingsTab } from '../components/admin/AdminSettingsTab';
 import {
   LayoutDashboard,
   BookOpen,
   Users,
+  Megaphone,
   ShieldAlert,
   Settings as SettingsIcon,
 } from 'lucide-react';
 
-type TabId = 'overview' | 'courses' | 'users' | 'logs' | 'settings';
+type TabId = 'overview' | 'courses' | 'users' | 'announcements' | 'logs' | 'settings';
 
 export const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
@@ -66,6 +68,7 @@ export const AdminPage: React.FC = () => {
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'courses', label: 'Courses', icon: BookOpen, badge: courses.length },
     { id: 'users', label: 'Users & Roles', icon: Users, badge: usersTotal || users.length },
+    { id: 'announcements', label: 'Pengumuman', icon: Megaphone },
     { id: 'logs', label: 'Audit Logs', icon: ShieldAlert, badge: auditLogsTotal || auditLogs.length },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
@@ -206,6 +209,10 @@ export const AdminPage: React.FC = () => {
               }
             }}
           />
+        )}
+
+        {activeTab === 'announcements' && (
+          <AdminAnnouncementsTab onShowToast={showToast} />
         )}
 
         {activeTab === 'logs' && (
