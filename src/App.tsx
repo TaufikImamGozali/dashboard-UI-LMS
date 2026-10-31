@@ -5,7 +5,8 @@ import { Topbar } from './components/Topbar';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
-import { RouteSkeleton } from './components/ui/RouteSkeleton';
+import { FullPageLoader } from './components/ui/FullPageLoader';
+import { ContentAreaSkeleton } from './components/ui/ContentAreaSkeleton';
 import { ConfirmDialog } from './components/ui/ConfirmDialog';
 import { useAuth } from './hooks/useAuth';
 import { AuthProvider } from './providers/AuthProvider';
@@ -68,42 +69,44 @@ function DashboardLayout() {
 
           {/* Body Content */}
           <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto no-scrollbar">
-            <Routes>
-              {/* Main Dashboard Route */}
-              <Route
-                path="/"
-                element={<DashboardPage searchQuery={searchQuery} />}
-              />
-              <Route
-                path="/dashboard"
-                element={<DashboardPage searchQuery={searchQuery} />}
-              />
+            <Suspense fallback={<ContentAreaSkeleton />}>
+              <Routes>
+                {/* Main Dashboard Route */}
+                <Route
+                  path="/"
+                  element={<DashboardPage searchQuery={searchQuery} />}
+                />
+                <Route
+                  path="/dashboard"
+                  element={<DashboardPage searchQuery={searchQuery} />}
+                />
 
-              {/* LMS Core Student Routes */}
-              <Route
-                path="/explore"
-                element={<ExplorePage searchQuery={searchQuery} />}
-              />
-              <Route
-                path="/lesson"
-                element={<LessonPage />}
-              />
-              <Route
-                path="/announcements"
-                element={<AnnouncementsPage />}
-              />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/help" element={<HelpPage />} />
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <AdminPage />
-                  </AdminRoute>
-                }
-              />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+                {/* LMS Core Student Routes */}
+                <Route
+                  path="/explore"
+                  element={<ExplorePage searchQuery={searchQuery} />}
+                />
+                <Route
+                  path="/lesson"
+                  element={<LessonPage />}
+                />
+                <Route
+                  path="/announcements"
+                  element={<AnnouncementsPage />}
+                />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/help" element={<HelpPage />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
           </main>
         </div>
       </div>
@@ -129,7 +132,7 @@ export default function App() {
           <ErrorBoundary>
             <BrowserRouter>
               <a href="#main-content" className="fixed left-4 top-4 z-toast -translate-y-24 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-transform focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">Skip to content</a>
-              <Suspense fallback={<div className="min-h-screen bg-brand-bg p-6"><RouteSkeleton /></div>}>
+              <Suspense fallback={<FullPageLoader message="Memuat platform Coursue..." />}>
                 <Routes>
                   {/* Public Landing Page */}
                   <Route path="/" element={<LandingPage />} />

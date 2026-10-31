@@ -4,6 +4,8 @@ export { ConfirmDialog } from './ConfirmDialog';
 export { EmptyState } from './EmptyState';
 export { ErrorBoundary } from './ErrorBoundary';
 export { PasswordField } from './PasswordField';
+export { FullPageLoader } from './FullPageLoader';
+export { ContentAreaSkeleton } from './ContentAreaSkeleton';
 export { RouteSkeleton } from './RouteSkeleton';
 export { Tabs } from './Tabs';
 export { TagBadge } from './TagBadge';

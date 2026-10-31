@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { MaintenanceScreen } from '../ui/MaintenanceScreen';
 import { AccountSuspendedScreen } from '../ui/AccountSuspendedScreen';
-import { RouteSkeleton } from '../ui/RouteSkeleton';
+import { FullPageLoader } from '../ui/FullPageLoader';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -84,11 +84,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (checking) {
-    return (
-      <div className="min-h-screen bg-brand-bg p-6 flex items-center justify-center">
-        <RouteSkeleton />
-      </div>
-    );
+    return <FullPageLoader message="Memverifikasi sesi akun..." />;
   }
 
   // Account suspended guard
