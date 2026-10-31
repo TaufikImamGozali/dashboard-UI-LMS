@@ -12,6 +12,7 @@ interface CourseProgressPanelProps {
   isEnrolling?: boolean;
   onToggleFavorite: () => void;
   onContinueLearning: () => void;
+  onOpenAssignment?: () => void;
   onEnrollFree?: () => void;
   onPaidClick?: () => void;
 }
@@ -25,6 +26,7 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
   isEnrolling = false,
   onToggleFavorite,
   onContinueLearning,
+  onOpenAssignment,
   onEnrollFree,
   onPaidClick,
 }) => {
@@ -67,11 +69,11 @@ export const CourseProgressPanel: React.FC<CourseProgressPanelProps> = ({
               variant="primary"
               fullWidth
               size="md"
-              onClick={onContinueLearning}
+              onClick={percentage === 100 && onOpenAssignment ? onOpenAssignment : onContinueLearning}
               rightIcon={<ArrowRight className="w-4 h-4" />}
               className="rounded-full shadow-purple-glow"
             >
-              Lanjutkan Belajar
+              {percentage === 100 ? 'Kumpulkan Proyek Akhir 🚀' : 'Lanjutkan Belajar'}
             </Button>
           </div>
         </div>

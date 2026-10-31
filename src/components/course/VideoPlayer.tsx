@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   CheckCircle2,
   Lock,
@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Sparkles,
   CreditCard,
+  Clock,
 } from 'lucide-react';
 import type { CurriculumLesson } from '../../types';
 import { Button } from '../ui/Button';
@@ -17,7 +18,7 @@ interface VideoPlayerProps {
   isPaid?: boolean;
   price?: number;
   isEnrolling?: boolean;
-  onMarkAsComplete: (lessonId: string) => void;
+  onVideoEnded: (lessonId: string) => void;
   onPreviousLesson?: () => void;
   onNextLesson?: () => void;
   hasPrevious?: boolean;
@@ -33,7 +34,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   isPaid = false,
   price = 0,
   isEnrolling = false,
-  onMarkAsComplete,
+  onVideoEnded,
   onPreviousLesson,
   onNextLesson,
   hasPrevious = false,
@@ -41,19 +42,63 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onEnrollFree,
   onPaidClick,
 }) => {
-  // Extract YouTube ID from videoUrl or check if it's already an embed URL
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // Extract YouTube ID & construct embed URL with enablejsapi=1 for auto-completion detection
   const getEmbedUrl = (url?: string): string | null => {
     if (!url) return null;
-    if (url.includes('youtube-nocookie.com/embed/')) return url;
-    if (url.includes('youtube.com/embed/')) {
-      return url.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
-    }
-    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    const origin = typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
+    let videoId = '';
+    const match = url.match(
+      /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+    );
     if (match && match[1]) {
-      return `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0&modestbranding=1`;
+      videoId = match[1];
+    } else if (url.includes('/embed/')) {
+      const parts = url.split('/embed/');
+      videoId = parts[1]?.split('?')[0] || '';
+    }
+
+    if (videoId) {
+      return `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&rel=0&modestbranding=1&origin=${origin}`;
     }
     return url;
   };
+
+  // Setup YouTube postMessage listener to detect when video finishes playing
+  useEffect(() => {
+    if (!lesson || !isEnrolled) return;
+
+    const handleMessage = (e: MessageEvent) => {
+      try {
+        let payload = e.data;
+        if (typeof payload === 'string') {
+          try {
+            payload = JSON.parse(payload);
+          } catch {
+            return;
+          }
+        }
+        if (!payload || typeof payload !== 'object') return;
+
+        // YouTube IFrame API returns state 0 when video reaches the end (YT.PlayerState.ENDED)
+        const isEnded =
+          (payload.event === 'onStateChange' && payload.info === 0) ||
+          (payload.event === 'infoDelivery' && payload.info?.playerState === 0);
+
+        if (isEnded) {
+          onVideoEnded(lesson.id);
+        }
+      } catch {
+        // Ignore non-JSON postMessages
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [lesson, isEnrolled, onVideoEnded]);
 
   const isLocked = !isEnrolled && lesson && !lesson.videoUrl && lesson.isLocked;
   const embedUrl = lesson ? getEmbedUrl(lesson.videoUrl) : null;
@@ -65,7 +110,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {isLocked ? (
           /* Locked State Overlay */
           <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center text-white bg-slate-950/90 backdrop-blur-sm">
-            <img height="160" width="160"
+            <img
+              height="160"
+              width="160"
               src={thumbnail}
               alt="Locked lesson"
               className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none"
@@ -115,8 +162,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
           </div>
         ) : embedUrl ? (
-          /* YouTube NoCookie iFrame Embed */
+          /* YouTube NoCookie iFrame Embed with JS API */
           <iframe
+            ref={iframeRef}
+            id="coursue-yt-player"
             src={embedUrl}
             title={lesson?.title || 'Course lesson'}
             className="w-full h-full border-0"
@@ -126,7 +175,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         ) : (
           /* Fallback Thumbnail / Placeholder */
           <div className="relative w-full h-full flex items-center justify-center">
-            <img height="160" width="160"
+            <img
+              height="160"
+              width="160"
               src={thumbnail}
               alt={lesson?.title || 'Lesson thumbnail'}
               className="w-full h-full object-cover opacity-80"
@@ -161,7 +212,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             onClick={onPreviousLesson}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               hasPrevious
-                ? 'bg-surface-muted hover:bg-slate-200/70 text-slateText-primary active:scale-95'
+                ? 'bg-surface-muted hover:bg-slate-200/70 dark:hover:bg-darkBorder text-slateText-primary active:scale-95 cursor-pointer'
                 : 'opacity-40 cursor-not-allowed text-slateText-muted'
             }`}
           >
@@ -169,20 +220,27 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <span>Materi Sebelumnya</span>
           </button>
 
-          {/* Mark as Complete Button */}
+          {/* Automatic Progress Status Badge (System-driven completion) */}
           {isEnrolled && (
-            <button
-              type="button"
-              onClick={() => onMarkAsComplete(lesson.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+            <div
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold select-none transition-all ${
                 lesson.isCompleted
-                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                  : 'bg-brand-500 text-white hover:bg-brand-600 shadow-purple-glow'
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                  : 'bg-surface-muted text-slateText-muted border border-outline'
               }`}
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{lesson.isCompleted ? 'Selesai ✓' : 'Tandai Selesai'}</span>
-            </button>
+              {lesson.isCompleted ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Selesai Ditonton ✓</span>
+                </>
+              ) : (
+                <>
+                  <Clock className="w-4 h-4 text-slateText-muted" />
+                  <span>Belum Selesai (Tonton hingga akhir)</span>
+                </>
+              )}
+            </div>
           )}
 
           {/* Navigation: Next Lesson */}
@@ -192,7 +250,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             onClick={onNextLesson}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               hasNext
-                ? 'bg-surface-muted hover:bg-slate-200/70 text-slateText-primary active:scale-95'
+                ? 'bg-surface-muted hover:bg-slate-200/70 dark:hover:bg-darkBorder text-slateText-primary active:scale-95 cursor-pointer'
                 : 'opacity-40 cursor-not-allowed text-slateText-muted'
             }`}
           >

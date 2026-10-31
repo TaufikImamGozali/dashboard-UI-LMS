@@ -5,7 +5,7 @@ import { Sidebar } from '../components/Sidebar';
 import { Topbar } from '../components/Topbar';
 import { CourseHeader } from '../components/course/CourseHeader';
 import { VideoPlayer } from '../components/course/VideoPlayer';
-import { CourseTabs } from '../components/course/CourseTabs';
+import { CourseTabs, type CourseTabId } from '../components/course/CourseTabs';
 import { CourseProgressPanel } from '../components/course/CourseProgressPanel';
 import { CourseInfoCard } from '../components/course/CourseInfoCard';
 import { CourseMentorCard } from '../components/course/CourseMentorCard';
@@ -39,6 +39,7 @@ export const CourseDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedTab, setSelectedTab] = useState<CourseTabId>('overview');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -122,12 +123,12 @@ export const CourseDetailPage: React.FC = () => {
     }
   };
 
-  // Toggle mark lesson as complete & persist to Supabase
-  const handleMarkAsComplete = async (lessonId: string) => {
+  // Automatic completion handler triggered when YouTube video reaches the end
+  const handleVideoEnded = async (lessonId: string) => {
     if (!courseData) return;
 
     const currentLesson = allLessons.find((l) => l.id === lessonId);
-    const targetStatus = !(currentLesson?.isCompleted ?? false);
+    if (currentLesson?.isCompleted) return; // Already marked complete
 
     // Optimistic UI update
     setCourseData((prev) => {
@@ -135,7 +136,7 @@ export const CourseDetailPage: React.FC = () => {
       const updatedSections = prev.sections.map((section) => ({
         ...section,
         lessons: section.lessons.map((lesson) =>
-          lesson.id === lessonId ? { ...lesson, isCompleted: targetStatus } : lesson
+          lesson.id === lessonId ? { ...lesson, isCompleted: true } : lesson
         ),
       }));
       return {
@@ -145,18 +146,15 @@ export const CourseDetailPage: React.FC = () => {
     });
 
     setActiveLesson((prev) =>
-      prev && prev.id === lessonId ? { ...prev, isCompleted: targetStatus } : prev
+      prev && prev.id === lessonId ? { ...prev, isCompleted: true } : prev
     );
 
     // Persist to Supabase lesson_progress table
-    const res = await courseService.markLessonCompleted(lessonId, targetStatus);
+    const res = await courseService.markLessonCompleted(lessonId, true);
     if (!res.success) {
       showToast(res.error || 'Gagal memperbarui progres materi', 'error');
     } else {
-      showToast(
-        targetStatus ? 'Materi ditandai sebagai selesai! 🎉' : 'Materi ditandai belum selesai',
-        'success'
-      );
+      showToast('🎉 Video selesai ditonton! Progres Anda telah disimpan otomatis.', 'success');
     }
   };
 
@@ -347,7 +345,7 @@ export const CourseDetailPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Video Player */}
+                {/* Video Player with Automatic Completion Detection */}
                 <VideoPlayer
                   lesson={activeLesson}
                   thumbnail={courseData.thumbnail}
@@ -355,7 +353,7 @@ export const CourseDetailPage: React.FC = () => {
                   isPaid={Boolean(courseData.price && courseData.price > 0)}
                   price={courseData.price}
                   isEnrolling={isEnrolling}
-                  onMarkAsComplete={handleMarkAsComplete}
+                  onVideoEnded={handleVideoEnded}
                   onPreviousLesson={handlePreviousLesson}
                   onNextLesson={handleNextLesson}
                   hasPrevious={hasPrevious}
@@ -364,10 +362,14 @@ export const CourseDetailPage: React.FC = () => {
                   onPaidClick={handlePaidClick}
                 />
 
-                {/* Tabs: Overview, Lessons Curriculum, Reviews */}
+                {/* Tabs: Overview, Lessons Curriculum, Reviews, Tugas & Proyek */}
                 <CourseTabs
                   course={courseData}
                   activeLessonId={activeLesson?.id || ''}
+                  isEnrolled={isEnrolled}
+                  isAllLessonsCompleted={totalLessons > 0 && completedLessons === totalLessons}
+                  activeTab={selectedTab}
+                  onTabChange={setSelectedTab}
                   onSelectLesson={(lesson) => {
                     setActiveLesson(lesson);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -387,6 +389,11 @@ export const CourseDetailPage: React.FC = () => {
                   isEnrolling={isEnrolling}
                   onToggleFavorite={handleToggleFavorite}
                   onContinueLearning={handleContinueLearning}
+                  onOpenAssignment={() => {
+                    setSelectedTab('assignment');
+                    const el = document.getElementById('tab-assignment');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   onEnrollFree={handleEnrollFree}
                   onPaidClick={handlePaidClick}
                 />

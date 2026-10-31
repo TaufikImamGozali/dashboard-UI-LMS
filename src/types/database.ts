@@ -382,3 +382,32 @@ export type DbPlatformSettingsUpdate = Database['public']['Tables']['platform_se
 export type DbAnnouncement = Database['public']['Tables']['announcements']['Row'];
 export type DbAnnouncementInsert = Database['public']['Tables']['announcements']['Insert'];
 export type DbAnnouncementUpdate = Database['public']['Tables']['announcements']['Update'];
+
+export type SubmissionStatus = 'submitted' | 'under_review' | 'approved' | 'rejected';
+
+export interface DbCourseAssignment {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string;
+  requirements: string[];
+  due_days: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbAssignmentSubmission {
+  id: string;
+  assignment_id: string;
+  course_id: string;
+  user_id: string;
+  project_url: string;
+  notes: string | null;
+  status: SubmissionStatus;
+  grade: number | null;
+  feedback: string | null;
+  submitted_at: string;
+  updated_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+}
