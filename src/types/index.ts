@@ -1,6 +1,19 @@
 export * from './database';
 
-export type CategoryType = 'frontend' | 'design' | 'branding';
+export type CategoryType =
+  | 'frontend'
+  | 'design'
+  | 'branding'
+  | 'ai'
+  | 'marketing'
+  | 'data'
+  | 'security'
+  | 'creative'
+  | 'softskills'
+  | 'finance'
+  | 'business'
+  | 'devops'
+  | string;
 export type CourseLevel = 'All' | 'Beginner' | 'Intermediate' | 'Advanced';
 export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started';
 export type SortOption = 'newest' | 'popular' | 'rating' | 'progress';
@@ -114,6 +127,7 @@ export interface CourseDetail {
   sections: CourseSection[];
   reviews: CourseReview[];
   isFavorite: boolean;
+  slug?: string;
   status?: 'in-progress' | 'completed' | 'not-started';
   releaseDate?: string;
   price?: number;

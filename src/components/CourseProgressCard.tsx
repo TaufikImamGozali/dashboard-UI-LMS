@@ -28,6 +28,11 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
           icon: <Code2 className="w-5 h-5 stroke-[2]" />,
           tileBg: 'bg-category-frontend-bg text-category-frontend-text',
         };
+      default:
+        return {
+          icon: <Code2 className="w-5 h-5 stroke-[2]" />,
+          tileBg: 'bg-category-frontend-bg text-category-frontend-text',
+        };
     }
   };
 

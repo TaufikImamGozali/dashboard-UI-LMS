@@ -9,8 +9,9 @@ import { CourseSkeleton } from '../components/lessons/CourseSkeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination } from '../components/lessons/Pagination';
 import { courseService } from '../services/courseService';
+import { mockCourses } from '../data/mockData';
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 16;
 
 export const LessonPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export const LessonPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch real published courses from Supabase
+  // Fetch real published courses from Supabase with graceful fallback
   useEffect(() => {
     let isMounted = true;
     const fetchCourses = async () => {
@@ -33,10 +34,17 @@ export const LessonPage: React.FC = () => {
       try {
         const data = await courseService.getPublishedCourses();
         if (isMounted) {
-          setCourses(data);
+          if (data && data.length > 0) {
+            setCourses(data);
+          } else {
+            setCourses(mockCourses);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch courses in LessonPage:', err);
+        if (isMounted) {
+          setCourses(mockCourses);
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }

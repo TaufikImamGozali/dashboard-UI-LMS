@@ -83,6 +83,7 @@ export const ContinueWatchingSection: React.FC<ContinueWatchingSectionProps> = (
               course={course}
               onToggleFavorite={onToggleFavorite}
               onClick={onCourseClick}
+              className="w-course-card sm:w-course-card-wide shrink-0"
             />
           ))}
         </div>

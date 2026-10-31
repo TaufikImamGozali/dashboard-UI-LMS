@@ -7,12 +7,14 @@ interface CourseCardProps {
   course: Course;
   onToggleFavorite: (id: string) => void;
   onClick?: (course: Course) => void;
+  className?: string;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
   course,
   onToggleFavorite,
   onClick,
+  className = '',
 }) => {
   const getProgressBarColor = () => {
     switch (course.category) {
@@ -40,7 +42,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? `Open course: ${course.title}` : undefined}
-      className="bg-surface rounded-card p-3.5 border border-outline-subtle hover:border-outline-strong shadow-xs hover:shadow-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shrink-0 w-course-card sm:w-course-card-wide group cursor-pointer"
+      className={`bg-surface rounded-card p-3.5 border border-outline-subtle hover:border-outline-strong shadow-xs hover:shadow-card hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer ${
+        className || 'w-full'
+      }`}
     >
       <div>
         {/* Thumbnail with Heart Icon */}
