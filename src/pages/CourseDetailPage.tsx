@@ -40,6 +40,7 @@ export const CourseDetailPage: React.FC = () => {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedTab, setSelectedTab] = useState<CourseTabId>('overview');
+  const [playTrigger, setPlayTrigger] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -100,6 +101,12 @@ export const CourseDetailPage: React.FC = () => {
     if (!courseData) return [];
     return courseData.sections.flatMap((s) => s.lessons);
   }, [courseData]);
+
+  const totalLessons = allLessons.length;
+  const completedLessons = useMemo(
+    () => allLessons.filter((l) => l.isCompleted).length,
+    [allLessons]
+  );
 
   const activeLessonIndex = useMemo(() => {
     if (!activeLesson) return -1;
@@ -186,10 +193,37 @@ export const CourseDetailPage: React.FC = () => {
   const handleContinueLearning = () => {
     if (!courseData) return;
 
+    // 1. If all lessons completed, switch to Assignment & Project tab
+    if (totalLessons > 0 && completedLessons === totalLessons) {
+      setSelectedTab('assignment');
+      showToast('Semua materi selesai! Membuka halaman evaluasi proyek 🚀', 'success');
+      const tabEl = document.getElementById('tab-assignment');
+      if (tabEl) {
+        tabEl.scrollIntoView({ behavior: 'smooth' });
+      }
+      return;
+    }
+
+    // 2. Find next uncompleted lesson
     const nextUncompleted = allLessons.find((l) => !l.isCompleted && !l.isLocked);
     if (nextUncompleted) {
-      setActiveLesson(nextUncompleted);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (activeLesson?.id !== nextUncompleted.id) {
+        setActiveLesson(nextUncompleted);
+        showToast(`Melanjutkan ke materi: ${nextUncompleted.title} ▶️`, 'info');
+      } else {
+        showToast(`Melanjutkan materi: ${nextUncompleted.title} ▶️`, 'info');
+      }
+
+      // Scroll smoothly to video player container
+      const playerContainer = document.getElementById('course-video-player-container');
+      if (playerContainer) {
+        playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Remote trigger auto-play
+      setPlayTrigger((prev) => prev + 1);
     }
   };
 
@@ -277,9 +311,6 @@ export const CourseDetailPage: React.FC = () => {
     );
   }
 
-  // Calculate completed lessons
-  const totalLessons = allLessons.length;
-  const completedLessons = allLessons.filter((l) => l.isCompleted).length;
   const isEnrolled = courseData.status === 'in-progress' || courseData.access === 'Akses Penuh Aktif';
   const relatedCourses = publishedCourses.filter((c) => c.id !== courseData.id).slice(0, 3);
 
@@ -353,6 +384,7 @@ export const CourseDetailPage: React.FC = () => {
                   isPaid={Boolean(courseData.price && courseData.price > 0)}
                   price={courseData.price}
                   isEnrolling={isEnrolling}
+                  playTrigger={playTrigger}
                   onVideoEnded={handleVideoEnded}
                   onPreviousLesson={handlePreviousLesson}
                   onNextLesson={handleNextLesson}

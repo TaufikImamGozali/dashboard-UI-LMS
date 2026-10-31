@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   CheckCircle2,
   Lock,
@@ -18,6 +18,7 @@ interface VideoPlayerProps {
   isPaid?: boolean;
   price?: number;
   isEnrolling?: boolean;
+  playTrigger?: number;
   onVideoEnded: (lessonId: string) => void;
   onPreviousLesson?: () => void;
   onNextLesson?: () => void;
@@ -34,6 +35,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   isPaid = false,
   price = 0,
   isEnrolling = false,
+  playTrigger = 0,
   onVideoEnded,
   onPreviousLesson,
   onNextLesson,
@@ -43,8 +45,50 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onPaidClick,
 }) => {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const playerRef = useRef<any>(null);
+  const hasTriggeredRef = useRef(false);
 
-  // Extract YouTube ID & construct embed URL with enablejsapi=1 for auto-completion detection
+  // Reset trigger lock on lesson change
+  useEffect(() => {
+    hasTriggeredRef.current = false;
+  }, [lesson?.id]);
+
+  // Handle play trigger from "Lanjutkan Belajar" button
+  useEffect(() => {
+    if (playTrigger > 0 && iframeRef.current?.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }),
+          '*'
+        );
+      } catch {
+        // Ignore iframe communication errors
+      }
+    }
+  }, [playTrigger]);
+
+  // Load YouTube IFrame API script dynamically once
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!(window as any).YT) {
+      const existingScript = document.getElementById('youtube-iframe-api-script');
+      if (!existingScript) {
+        const tag = document.createElement('script');
+        tag.id = 'youtube-iframe-api-script';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        tag.async = true;
+        document.body.appendChild(tag);
+      }
+    }
+  }, []);
+
+  const triggerCompletion = useCallback(() => {
+    if (!lesson || !isEnrolled || hasTriggeredRef.current || lesson.isCompleted) return;
+    hasTriggeredRef.current = true;
+    onVideoEnded(lesson.id);
+  }, [lesson, isEnrolled, onVideoEnded]);
+
+  // Extract YouTube ID & construct embed URL with enablejsapi=1
   const getEmbedUrl = (url?: string): string | null => {
     if (!url) return null;
     const origin = typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
@@ -65,9 +109,42 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return url;
   };
 
-  // Setup YouTube postMessage listener to detect when video finishes playing
+  const handleIframeLoad = () => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow) return;
+
+    // Send listening handshake to YouTube IFrame
+    try {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: 'listening', id: 'coursue-yt-player' }),
+        '*'
+      );
+    } catch {
+      // Ignore
+    }
+
+    // Try binding official YT.Player if available
+    try {
+      const YT = (window as any).YT;
+      if (YT && YT.Player && !playerRef.current) {
+        playerRef.current = new YT.Player('coursue-yt-player', {
+          events: {
+            onStateChange: (event: any) => {
+              if (event.data === 0) {
+                triggerCompletion();
+              }
+            },
+          },
+        });
+      }
+    } catch {
+      // Fallback to postMessage
+    }
+  };
+
+  // YouTube postMessage listener & double-guard interval polling
   useEffect(() => {
-    if (!lesson || !isEnrolled) return;
+    if (!lesson || !isEnrolled || lesson.isCompleted) return;
 
     const handleMessage = (e: MessageEvent) => {
       try {
@@ -81,30 +158,78 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
         if (!payload || typeof payload !== 'object') return;
 
-        // YouTube IFrame API returns state 0 when video reaches the end (YT.PlayerState.ENDED)
-        const isEnded =
+        // 1. Detect state change: 0 = ENDED
+        if (
           (payload.event === 'onStateChange' && payload.info === 0) ||
-          (payload.event === 'infoDelivery' && payload.info?.playerState === 0);
+          (payload.event === 'infoDelivery' && payload.info?.playerState === 0)
+        ) {
+          triggerCompletion();
+          return;
+        }
 
-        if (isEnded) {
-          onVideoEnded(lesson.id);
+        // 2. Detect progress time near end (currentTime >= duration - 2s)
+        if (payload.event === 'infoDelivery' && payload.info) {
+          const { currentTime, duration } = payload.info;
+          if (
+            typeof currentTime === 'number' &&
+            typeof duration === 'number' &&
+            duration > 0 &&
+            (currentTime >= duration - 2 || currentTime >= duration)
+          ) {
+            triggerCompletion();
+          }
         }
       } catch {
-        // Ignore non-JSON postMessages
+        // Ignore non-YouTube messages
       }
     };
 
     window.addEventListener('message', handleMessage);
+
+    // Polling interval (every 500ms): queries time & checks player instance
+    const pollInterval = setInterval(() => {
+      // Check YT.Player instance if initialized
+      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+        try {
+          const currentTime = playerRef.current.getCurrentTime();
+          const duration = playerRef.current.getDuration();
+          if (duration > 0 && (currentTime >= duration - 2 || currentTime >= duration)) {
+            triggerCompletion();
+            return;
+          }
+        } catch {
+          // Ignore
+        }
+      }
+
+      // Send postMessage polling command into iframe
+      if (iframeRef.current?.contentWindow) {
+        try {
+          iframeRef.current.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func: 'getCurrentTime', args: [] }),
+            '*'
+          );
+          iframeRef.current.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func: 'getDuration', args: [] }),
+            '*'
+          );
+        } catch {
+          // Ignore
+        }
+      }
+    }, 500);
+
     return () => {
       window.removeEventListener('message', handleMessage);
+      clearInterval(pollInterval);
     };
-  }, [lesson, isEnrolled, onVideoEnded]);
+  }, [lesson, isEnrolled, triggerCompletion]);
 
   const isLocked = !isEnrolled && lesson && !lesson.videoUrl && lesson.isLocked;
   const embedUrl = lesson ? getEmbedUrl(lesson.videoUrl) : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" id="course-video-player-container">
       {/* Video Container */}
       <div className="relative aspect-video w-full rounded-card overflow-hidden bg-slate-900 shadow-card select-none">
         {isLocked ? (
@@ -171,6 +296,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             className="w-full h-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
+            onLoad={handleIframeLoad}
           />
         ) : (
           /* Fallback Thumbnail / Placeholder */
@@ -220,25 +346,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <span>Materi Sebelumnya</span>
           </button>
 
-          {/* Automatic Progress Status Badge (System-driven completion) */}
+          {/* Automatic Progress Status Badge with Clickable Fallback */}
           {isEnrolled && (
-            <div
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold select-none transition-all ${
-                lesson.isCompleted
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                  : 'bg-surface-muted text-slateText-muted border border-outline'
-              }`}
-            >
+            <div>
               {lesson.isCompleted ? (
-                <>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold select-none transition-all bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Selesai Ditonton ✓</span>
-                </>
+                </div>
               ) : (
-                <>
-                  <Clock className="w-4 h-4 text-slateText-muted" />
-                  <span>Belum Selesai (Tonton hingga akhir)</span>
-                </>
+                <button
+                  type="button"
+                  onClick={() => triggerCompletion()}
+                  title="Klik untuk menandai selesai jika video sudah Anda tonton"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-surface-muted hover:bg-slate-200/80 dark:hover:bg-darkBorder text-slateText-secondary border border-outline cursor-pointer active:scale-95"
+                >
+                  <Clock className="w-4 h-4 text-brand-500 animate-pulse" />
+                  <span>Belum Selesai (Otomatis / Klik)</span>
+                </button>
               )}
             </div>
           )}
