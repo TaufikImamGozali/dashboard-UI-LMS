@@ -127,6 +127,11 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
                         <span className="text-xs sm:text-sm truncate leading-snug">
                           {lesson.title}
                         </span>
+                        {!lesson.isLocked && section.lessons.some((l) => l.isLocked) && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 shrink-0">
+                            Preview
+                          </span>
+                        )}
                       </div>
 
                       {/* Duration & Lock Tooltip */}

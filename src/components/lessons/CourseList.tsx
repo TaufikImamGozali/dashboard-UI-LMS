@@ -6,7 +6,7 @@ import { CourseListItem } from './CourseListItem';
 interface CourseListProps {
   courses: Course[];
   viewMode: ViewMode;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite?: (id: string) => void;
   onSelectCourse: (course: Course) => void;
 }
 

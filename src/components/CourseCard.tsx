@@ -2,10 +2,12 @@ import React from 'react';
 import { Heart } from 'lucide-react';
 import type { Course } from '../types';
 import { TagBadge } from './ui/TagBadge';
+import { useFavorites } from '../hooks/useFavorites';
+import { formatPrice } from '../utils/currency';
 
 interface CourseCardProps {
   course: Course;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite?: (id: string) => void;
   onClick?: (course: Course) => void;
   className?: string;
 }
@@ -16,6 +18,15 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onClick,
   className = '',
 }) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const effectiveIsFavorite = isFavorite(course.id);
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(course.id, course.title);
+    onToggleFavorite?.(course.id);
+  };
+
   const getProgressBarColor = () => {
     switch (course.category) {
       case 'frontend':
@@ -65,8 +76,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           {/* Price Badge */}
           <div className="absolute top-2.5 left-2.5 pointer-events-none">
             {course.price && course.price > 0 ? (
-              <span className="px-2.5 py-0.5 rounded-full bg-purple-900/85 backdrop-blur-md text-purple-200 font-extrabold text-micro tracking-wide border border-purple-400/30 shadow-xs">
-                ${course.price}
+              <span className="px-2.5 py-0.5 rounded-full bg-purple-900/90 backdrop-blur-md text-purple-200 font-extrabold text-micro tracking-wide border border-purple-400/30 shadow-xs flex items-center gap-1">
+                <span>👑</span>
+                <span>{formatPrice(course.price)}</span>
               </span>
             ) : (
               <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/85 backdrop-blur-md text-white font-extrabold text-micro tracking-wide shadow-xs">
@@ -78,20 +90,17 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           {/* Heart / Favorite Button */}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(course.id);
-            }}
-            className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center transition-transform active:scale-90 ${
-              course.isFavorite
-                ? 'bg-surface text-rose-500 shadow-sm'
-                : 'bg-black/25 text-white hover:bg-surface hover:text-rose-500'
+            onClick={handleHeartClick}
+            className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-200 active:scale-75 hover:scale-110 ${
+              effectiveIsFavorite
+                ? 'bg-surface text-rose-500 shadow-sm ring-1 ring-rose-200'
+                : 'bg-black/30 text-white hover:bg-surface hover:text-rose-500'
             }`}
-            aria-label={course.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={effectiveIsFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}
           >
             <Heart
-              className={`w-4 h-4 transition-colors ${
-                course.isFavorite ? 'fill-rose-500 text-rose-500' : 'text-white'
+              className={`w-4 h-4 transition-transform duration-200 ${
+                effectiveIsFavorite ? 'fill-rose-500 text-rose-500 scale-110' : 'text-white'
               }`}
             />
           </button>

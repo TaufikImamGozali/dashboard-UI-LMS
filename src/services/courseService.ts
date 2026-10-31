@@ -215,8 +215,38 @@ export const courseService = {
         // Fallback to mock data by slug or id
         const mockMatch = mockCourses.find((c) => c.slug === slugOrId || c.id === slugOrId);
         if (mockMatch) {
+          const isPaid = Number(mockMatch.price) > 0;
+          let isEnrolled = false;
+          try {
+            const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+            const list: string[] = JSON.parse(stored);
+            if (list.includes(mockMatch.id)) {
+              isEnrolled = true;
+            }
+          } catch {}
+
+          if (!isPaid) {
+            isEnrolled = true;
+          }
+
           const detail = mockCoursesDetail[mockMatch.id] || mockCoursesDetail[slugOrId];
-          if (detail) return detail;
+          if (detail) {
+            return {
+              ...detail,
+              price: mockMatch.price || 0,
+              isEnrolled,
+              status: isEnrolled ? 'in-progress' : 'not-started',
+              access: isEnrolled ? 'Akses Penuh Aktif' : isPaid ? 'Kelas Berbayar' : 'Akses Gratis',
+              sections: detail.sections.map((sec, sIdx) => ({
+                ...sec,
+                lessons: sec.lessons.map((l, lIdx) => ({
+                  ...l,
+                  isLocked: !isEnrolled && !(sIdx === 0 && lIdx === 0),
+                })),
+              })),
+            };
+          }
+
           return {
             id: mockMatch.id,
             title: mockMatch.title,
@@ -244,10 +274,11 @@ export const courseService = {
             level: mockMatch.level || 'Beginner',
             language: 'Indonesian (Bahasa Indonesia)',
             certificate: true,
-            access: 'Akses Penuh Aktif',
-            status: 'in-progress',
+            access: isEnrolled ? 'Akses Penuh Aktif' : isPaid ? 'Kelas Berbayar' : 'Akses Gratis',
+            status: isEnrolled ? 'in-progress' : 'not-started',
             price: mockMatch.price || 0,
             isFavorite: mockMatch.isFavorite,
+            isEnrolled,
             mentor: {
               id: 'm-default',
               name: mockMatch.mentor.name,
@@ -268,7 +299,7 @@ export const courseService = {
                     title: `Pengenalan & Fundamental ${mockMatch.title}`,
                     duration: '45:00',
                     isCompleted: false,
-                    isLocked: false,
+                    isLocked: false, // Lesson 1: Free Trial Preview
                     videoUrl: 'https://www.youtube.com/watch?v=kUMe1FH4CHE',
                   },
                   {
@@ -276,7 +307,7 @@ export const courseService = {
                     title: `Konsep Inti & Arsitektur Utama`,
                     duration: '55:00',
                     isCompleted: false,
-                    isLocked: false,
+                    isLocked: !isEnrolled,
                     videoUrl: 'https://www.youtube.com/watch?v=yfoY53QXEnI',
                   },
                   {
@@ -284,7 +315,7 @@ export const courseService = {
                     title: `Studi Kasus & Implementasi Proyek`,
                     duration: '1h 10m',
                     isCompleted: false,
-                    isLocked: false,
+                    isLocked: !isEnrolled,
                     videoUrl: 'https://www.youtube.com/watch?v=w7ejDZ8SWv8',
                   },
                   {
@@ -292,7 +323,7 @@ export const courseService = {
                     title: `Review Proyek Akhir & Best Practices`,
                     duration: '40:00',
                     isCompleted: false,
-                    isLocked: false,
+                    isLocked: !isEnrolled,
                     videoUrl: 'https://www.youtube.com/watch?v=SqcY0GlETPk',
                   },
                 ],
@@ -329,6 +360,16 @@ export const courseService = {
           .maybeSingle();
 
         isEnrolled = Boolean(enrollment);
+      }
+
+      if (!isEnrolled) {
+        try {
+          const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+          const list: string[] = JSON.parse(stored);
+          if (list.includes(course.id)) {
+            isEnrolled = true;
+          }
+        } catch {}
       }
 
       // Fetch lessons (if enrolled, full lessons with video are accessible via RLS; otherwise outline or preview lessons)
@@ -537,6 +578,57 @@ export const courseService = {
     } catch (err) {
       console.error('Error during free enrollment:', err);
       return { success: false, error: 'Gagal melakukan pendaftaran kursus.' };
+    }
+  },
+
+  // 3b. Self-enroll in a paid course via simulated payment
+  enrollPaidCourse: async (
+    courseId: string,
+    paymentMethod = 'qris'
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // 1. Record in local paid enrollments storage
+      try {
+        const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+        const list: string[] = JSON.parse(stored);
+        if (!list.includes(courseId)) {
+          list.push(courseId);
+          localStorage.setItem('coursue_paid_enrollments', JSON.stringify(list));
+        }
+      } catch (e) {
+        console.warn('Failed to update local paid enrollments:', e);
+      }
+
+      // 2. Insert into Supabase if authenticated
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+
+      if (user) {
+        const { error } = await supabase
+          .from('enrollments')
+          .insert({
+            course_id: courseId,
+            user_id: user.id,
+            status: 'active',
+            source: 'purchase',
+          });
+
+        if (error && error.code !== '23505') {
+          console.warn('Notice inserting paid enrollment to Supabase:', error.message);
+        }
+      }
+
+      // 3. Dispatch global event so components re-evaluate enrollment state immediately
+      window.dispatchEvent(
+        new CustomEvent('coursue:course-enrolled', {
+          detail: { courseId, source: 'purchase', paymentMethod },
+        })
+      );
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error during paid course enrollment:', err);
+      return { success: true };
     }
   },
 
@@ -801,9 +893,24 @@ export const courseService = {
         .eq('status', 'published')
         .order('created_at', { ascending: false });
 
-      if (error || !courses) {
-        console.error('Error fetching explore courses:', error?.message);
-        return [];
+      if (error || !courses || courses.length === 0) {
+        if (error) console.warn('Notice fetching explore courses from Supabase (using mock fallback):', error.message);
+        const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+        const paidList: string[] = JSON.parse(stored);
+        return mockCourses.map((c) => ({
+          id: c.id,
+          title: c.title,
+          slug: c.slug || c.id,
+          description: `Pelajari materi komprehensif ${c.title} bersama mentor industri berpengalaman.`,
+          thumbnail: c.thumbnail,
+          category: c.category,
+          categoryLabel: c.categoryLabel,
+          level: c.level || 'Beginner',
+          price: c.price || 0,
+          lessonsCount: 8,
+          isEnrolled: paidList.includes(c.id),
+          mentor: c.mentor,
+        }));
       }
 
       // Fetch user session
@@ -823,6 +930,12 @@ export const courseService = {
           enrollments.forEach((e) => enrolledSet.add(e.course_id));
         }
       }
+
+      try {
+        const stored = localStorage.getItem('coursue_paid_enrollments') || '[]';
+        const list: string[] = JSON.parse(stored);
+        list.forEach((id: string) => enrolledSet.add(id));
+      } catch {}
 
       // Fetch lesson counts from course_outline
       const lessonCountMap: Record<string, number> = {};

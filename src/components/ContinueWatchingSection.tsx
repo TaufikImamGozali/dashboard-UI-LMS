@@ -7,7 +7,7 @@ import { EmptyState } from './ui/EmptyState';
 interface ContinueWatchingSectionProps {
   courses: Course[];
   searchQuery: string;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite?: (id: string) => void;
   onCourseClick?: (course: Course) => void;
 }
 

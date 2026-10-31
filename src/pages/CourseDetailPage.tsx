@@ -10,10 +10,13 @@ import { CourseProgressPanel } from '../components/course/CourseProgressPanel';
 import { CourseInfoCard } from '../components/course/CourseInfoCard';
 import { CourseMentorCard } from '../components/course/CourseMentorCard';
 import { CourseCard } from '../components/CourseCard';
+import { CoursePaymentModal } from '../components/course/CoursePaymentModal';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ToastContainer } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
+import { useFavorites } from '../hooks/useFavorites';
+import { formatPrice } from '../utils/currency';
 import type { CourseDetail, CurriculumLesson, Course } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { courseService } from '../services/courseService';
@@ -32,12 +35,14 @@ export const CourseDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { toasts, showToast, dismissToast } = useToast();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const [courseData, setCourseData] = useState<CourseDetail | null>(null);
   const [activeLesson, setActiveLesson] = useState<CurriculumLesson | null>(null);
   const [publishedCourses, setPublishedCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedTab, setSelectedTab] = useState<CourseTabId>('overview');
   const [playTrigger, setPlayTrigger] = useState(0);
@@ -184,10 +189,17 @@ export const CourseDetailPage: React.FC = () => {
 
   // Paid course handler
   const handlePaidClick = () => {
-    showToast(
-      'Sistem pembayaran kelas berbayar saat ini belum tersedia. Nantikan update segera!',
-      'info'
-    );
+    setPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    showToast('🎉 Pembayaran berhasil diverifikasi! Selamat belajar.', 'success');
+    await refetchCourse();
+  };
+
+  const handleToggleCourseFavorite = () => {
+    if (!courseData) return;
+    toggleFavorite(courseData.id, courseData.title);
   };
 
   const handleContinueLearning = () => {
@@ -225,15 +237,6 @@ export const CourseDetailPage: React.FC = () => {
       // Remote trigger auto-play
       setPlayTrigger((prev) => prev + 1);
     }
-  };
-
-  const handleToggleFavorite = () => {
-    if (!courseData) return;
-    setCourseData((prev) => (prev ? { ...prev, isFavorite: !prev.isFavorite } : null));
-    showToast(
-      courseData.isFavorite ? 'Dihapus dari daftar favorit' : 'Ditambahkan ke daftar favorit',
-      'info'
-    );
   };
 
   const handleToggleMentorFollow = () => {
@@ -357,7 +360,7 @@ export const CourseDetailPage: React.FC = () => {
                             Kelas Premium Berbayar
                           </span>
                           <span className="px-2 py-0.5 rounded-full text-meta font-extrabold bg-purple-200 text-purple-800">
-                            ${courseData.price}
+                            {formatPrice(courseData.price)}
                           </span>
                         </div>
                         <p className="text-xs text-purple-700 mt-0.5">
@@ -371,7 +374,7 @@ export const CourseDetailPage: React.FC = () => {
                       onClick={handlePaidClick}
                       className="rounded-full shrink-0 shadow-purple-glow bg-purple-600 hover:bg-purple-700"
                     >
-                      Beli Kelas (${courseData.price})
+                      Beli Kelas ({formatPrice(courseData.price)})
                     </Button>
                   </div>
                 )}
@@ -415,11 +418,11 @@ export const CourseDetailPage: React.FC = () => {
                 <CourseProgressPanel
                   completedLessons={completedLessons}
                   totalLessons={totalLessons}
-                  isFavorite={courseData.isFavorite}
+                  isFavorite={isFavorite(courseData.id)}
                   isEnrolled={isEnrolled}
                   price={courseData.price}
                   isEnrolling={isEnrolling}
-                  onToggleFavorite={handleToggleFavorite}
+                  onToggleFavorite={handleToggleCourseFavorite}
                   onContinueLearning={handleContinueLearning}
                   onOpenAssignment={() => {
                     setSelectedTab('assignment');
@@ -458,7 +461,6 @@ export const CourseDetailPage: React.FC = () => {
                     <CourseCard
                       key={relCourse.id}
                       course={relCourse}
-                      onToggleFavorite={() => {}}
                       onClick={() => navigate(`/course/${relCourse.slug || relCourse.id}`)}
                     />
                   ))}
@@ -468,6 +470,15 @@ export const CourseDetailPage: React.FC = () => {
           </main>
         </div>
       </div>
+
+      {courseData && (
+        <CoursePaymentModal
+          isOpen={paymentModalOpen}
+          course={courseData}
+          onClose={() => setPaymentModalOpen(false)}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={logoutOpen}

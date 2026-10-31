@@ -9,9 +9,12 @@ import {
   Play,
   ArrowRight,
   Filter,
+  Heart,
 } from 'lucide-react';
 import { courseService, type ExploreCourse } from '../services/courseService';
 import type { CategoryType } from '../types';
+import { useFavorites } from '../hooks/useFavorites';
+import { formatPrice } from '../utils/currency';
 
 interface ExplorePageProps {
   searchQuery?: string;
@@ -19,6 +22,7 @@ interface ExplorePageProps {
 
 export const ExplorePage: React.FC<ExplorePageProps> = ({ searchQuery: externalSearch = '' }) => {
   const navigate = useNavigate();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [courses, setCourses] = useState<ExploreCourse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -26,7 +30,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ searchQuery: externalS
   // Filters
   const [search, setSearch] = useState('');
   const effectiveSearch = search || externalSearch;
-  const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
+  const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid' | 'favorite'>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | CategoryType>('all');
 
   const loadCourses = async () => {
@@ -68,9 +72,10 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ searchQuery: externalS
 
     if (!matchesSearch) return false;
 
-    // Price filter
+    // Price & Favorite filter
     if (priceFilter === 'free' && c.price > 0) return false;
     if (priceFilter === 'paid' && c.price === 0) return false;
+    if (priceFilter === 'favorite' && !isFavorite(c.id)) return false;
 
     // Category filter
     if (categoryFilter !== 'all' && c.category !== categoryFilter) return false;
@@ -78,19 +83,18 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ searchQuery: externalS
     return true;
   });
 
-  const formatPrice = (price: number) => {
+  const renderPriceBadge = (price: number) => {
     if (!price || price === 0) {
       return (
-        <span className="px-2.5 py-0.5 rounded-full bg-emerald-600/90 text-white font-extrabold text-[11px] shadow-xs tracking-wide">
+        <span className="px-2.5 py-0.5 rounded-full bg-emerald-700/90 text-white font-extrabold text-[11px] shadow-xs tracking-wide">
           GRATIS
         </span>
       );
     }
-    const formatted =
-      price > 1000 ? `Rp ${price.toLocaleString('id-ID')}` : `$${price}`;
     return (
-      <span className="px-2.5 py-0.5 rounded-full bg-purple-900/90 text-purple-200 font-extrabold text-[11px] border border-purple-400/30 shadow-xs tracking-wide">
-        {formatted}
+      <span className="px-2.5 py-0.5 rounded-full bg-purple-900/90 text-purple-200 font-extrabold text-[11px] border border-purple-400/30 shadow-xs tracking-wide flex items-center gap-1">
+        <span>👑</span>
+        <span>{formatPrice(price)}</span>
       </span>
     );
   };
@@ -191,14 +195,15 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ searchQuery: externalS
             ))}
           </div>
 
-          {/* Price Tabs */}
-          <div className="flex items-center gap-1.5">
-            <span className="font-bold text-content-muted mr-1">Harga:</span>
+          {/* Price & Favorites Tabs */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-bold text-content-muted mr-1">Tipe:</span>
             {(
               [
                 { id: 'all', label: 'Semua' },
                 { id: 'free', label: 'Gratis' },
-                { id: 'paid', label: 'Berbayar' },
+                { id: 'paid', label: 'Berbayar 👑' },
+                { id: 'favorite', label: 'Favorit ❤️' },
               ] as const
             ).map((item) => (
               <button
@@ -268,15 +273,36 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({ searchQuery: externalS
 
                   {/* Price Badge */}
                   <div className="absolute top-2.5 left-2.5">
-                    {formatPrice(course.price)}
+                    {renderPriceBadge(course.price)}
                   </div>
+
+                  {/* Heart / Favorite Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(course.id, course.title);
+                    }}
+                    className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-200 active:scale-75 hover:scale-110 z-10 ${
+                      isFavorite(course.id)
+                        ? 'bg-surface text-rose-500 shadow-sm ring-1 ring-rose-200'
+                        : 'bg-black/30 text-white hover:bg-surface hover:text-rose-500'
+                    }`}
+                    aria-label={isFavorite(course.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'}
+                  >
+                    <Heart
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isFavorite(course.id) ? 'fill-rose-500 text-rose-500 scale-110' : 'text-white'
+                      }`}
+                    />
+                  </button>
 
                   {/* Enrolled Badge */}
                   {course.isEnrolled && (
-                    <div className="absolute top-2.5 right-2.5">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-500 text-white font-extrabold text-[10px] shadow-xs">
+                    <div className="absolute bottom-2.5 right-2.5">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-600/90 backdrop-blur-md text-white font-extrabold text-[10px] shadow-xs">
                         <CheckCircle2 className="w-3 h-3" />
-                        <span>Sudah Diikuti</span>
+                        <span>Diikuti</span>
                       </span>
                     </div>
                   )}

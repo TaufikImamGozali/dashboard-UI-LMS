@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { CurriculumLesson } from '../../types';
 import { Button } from '../ui/Button';
+import { formatPrice } from '../../utils/currency';
 
 interface VideoPlayerProps {
   lesson: CurriculumLesson | null;
@@ -266,7 +267,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     leftIcon={<CreditCard className="w-4 h-4" />}
                     className="rounded-full shadow-purple-glow"
                   >
-                    Beli Kelas (${price})
+                    Beli Kelas ({formatPrice(price)})
                   </Button>
                 ) : (
                   <Button

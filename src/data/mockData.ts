@@ -79,7 +79,7 @@ export const mockCourses: Course[] = [
       role: 'Staff Web Architect',
     },
     isFavorite: true,
-    price: 0,
+    price: 299000,
   },
   {
     id: 'c3',
@@ -102,7 +102,7 @@ export const mockCourses: Course[] = [
       role: 'Principal Designer',
     },
     isFavorite: false,
-    price: 0,
+    price: 249000,
   },
   {
     id: 'c4',
@@ -125,7 +125,7 @@ export const mockCourses: Course[] = [
       role: 'Growth Specialist',
     },
     isFavorite: false,
-    price: 0,
+    price: 199000,
   },
   {
     id: 'c5',
@@ -171,7 +171,7 @@ export const mockCourses: Course[] = [
       role: 'Senior Data Analyst',
     },
     isFavorite: false,
-    price: 0,
+    price: 229000,
   },
   {
     id: 'c7',
@@ -194,7 +194,7 @@ export const mockCourses: Course[] = [
       role: 'Security Architect',
     },
     isFavorite: false,
-    price: 0,
+    price: 349000,
   },
   {
     id: 'c8',
@@ -263,7 +263,7 @@ export const mockCourses: Course[] = [
       role: 'CFP® Advisor',
     },
     isFavorite: false,
-    price: 0,
+    price: 189000,
   },
   {
     id: 'c11',
@@ -286,7 +286,7 @@ export const mockCourses: Course[] = [
       role: 'Venture Founder',
     },
     isFavorite: false,
-    price: 0,
+    price: 279000,
   },
   {
     id: 'c12',
@@ -309,7 +309,7 @@ export const mockCourses: Course[] = [
       role: 'No-Code Architect',
     },
     isFavorite: false,
-    price: 0,
+    price: 329000,
   },
   {
     id: 'c13',
@@ -355,7 +355,7 @@ export const mockCourses: Course[] = [
       role: 'Agile Coach PMP®',
     },
     isFavorite: false,
-    price: 0,
+    price: 259000,
   },
   {
     id: 'c15',
@@ -401,7 +401,7 @@ export const mockCourses: Course[] = [
       role: 'Cloud DevOps Architect',
     },
     isFavorite: false,
-    price: 0,
+    price: 399000,
   },
 ];
 

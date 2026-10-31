@@ -15,7 +15,7 @@ export type CategoryType =
   | 'devops'
   | string;
 export type CourseLevel = 'All' | 'Beginner' | 'Intermediate' | 'Advanced';
-export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started';
+export type CourseStatus = 'all' | 'in-progress' | 'completed' | 'not-started' | 'favorite';
 export type SortOption = 'newest' | 'popular' | 'rating' | 'progress';
 export type ViewMode = 'grid' | 'list';
 

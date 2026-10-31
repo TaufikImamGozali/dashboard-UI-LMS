@@ -11,6 +11,7 @@ import { ConfirmDialog } from './components/ui/ConfirmDialog';
 import { useAuth } from './hooks/useAuth';
 import { AuthProvider } from './providers/AuthProvider';
 import { ProfileProvider } from './providers/ProfileProvider';
+import { FavoritesProvider } from './providers/FavoritesProvider';
 import { ThemeProvider } from './hooks/useTheme';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
@@ -129,8 +130,9 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <ProfileProvider>
-          <ErrorBoundary>
-            <BrowserRouter>
+          <FavoritesProvider>
+            <ErrorBoundary>
+              <BrowserRouter>
               <a href="#main-content" className="fixed left-4 top-4 z-toast -translate-y-24 rounded-full bg-brand-500 px-5 py-3 text-sm font-bold text-white shadow-card transition-transform focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300">Skip to content</a>
               <Suspense fallback={<FullPageLoader message="Memuat platform Coursue..." />}>
                 <Routes>
@@ -190,8 +192,9 @@ export default function App() {
               </Suspense>
             </BrowserRouter>
           </ErrorBoundary>
-        </ProfileProvider>
-      </AuthProvider>
+        </FavoritesProvider>
+      </ProfileProvider>
+    </AuthProvider>
     </ThemeProvider>
   );
 }
