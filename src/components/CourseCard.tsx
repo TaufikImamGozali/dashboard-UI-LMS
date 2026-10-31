@@ -49,9 +49,15 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       <div>
         {/* Thumbnail with Heart Icon */}
         <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden mb-3.5 bg-slate-100">
-          <img height="160" width="160"
+          <img
+            height="160"
+            width="160"
             src={course.thumbnail}
             alt={course.title}
+            onError={(e) => {
+              e.currentTarget.src =
+                'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80';
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />

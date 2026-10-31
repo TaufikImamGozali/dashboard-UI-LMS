@@ -41,7 +41,7 @@ export const mockCourses: Course[] = [
     slug: 'ai-untuk-pemula',
     category: 'ai',
     categoryLabel: 'ARTIFICIAL INTELLIGENCE',
-    thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=600&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80',
     progress: 0,
     level: 'Beginner',
     rating: 4.9,

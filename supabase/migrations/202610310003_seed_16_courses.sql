@@ -135,7 +135,7 @@ begin
       'Artificial Intelligence (AI) untuk Pemula',
       'ai-untuk-pemula',
       'Pelajari dasar AI, ChatGPT, prompt engineering, dan pemanfaatan AI untuk produktivitas sehari-hari.',
-      'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80',
       'ai',
       'beginner',
       0,

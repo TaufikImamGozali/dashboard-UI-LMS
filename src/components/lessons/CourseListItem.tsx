@@ -46,9 +46,15 @@ export const CourseListItem: React.FC<CourseListItemProps> = ({
       <div className="flex items-start sm:items-center gap-4 min-w-0 flex-1">
         {/* Thumbnail with Heart Icon */}
         <div className="relative w-28 sm:w-36 h-20 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 shrink-0">
-          <img height="160" width="160"
+          <img
+            height="160"
+            width="160"
             src={course.thumbnail}
             alt={course.title}
+            onError={(e) => {
+              e.currentTarget.src =
+                'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80';
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
